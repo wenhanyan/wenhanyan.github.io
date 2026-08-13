@@ -144,9 +144,7 @@ main{min-height:70vh}
 .hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.26em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:26px;display:flex;align-items:center}
 .hero-role .bar{display:inline-block;width:40px;height:2px;background:linear-gradient(90deg,var(--red),var(--blue));border-radius:2px;margin-right:16px}
 .hero-name{position:relative;font-size:clamp(52px,11vw,132px);font-weight:900;line-height:.94;letter-spacing:-.04em;margin-bottom:24px}
-.hero-name .name-solid{position:relative;z-index:2;display:inline-block;background:linear-gradient(115deg,var(--red) 0%,#d122ff 52%,var(--blue) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero-name .name-dot{position:relative;z-index:2;display:inline-block;width:.14em;height:.14em;margin-left:.08em;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--blue));transform:translateY(-.06em)}
-.hero-name .name-outline{position:absolute;left:.035em;top:.035em;z-index:1;color:transparent;-webkit-text-stroke:1.5px var(--line);white-space:nowrap}
+.hero-name .name-solid{display:inline-block;background:linear-gradient(115deg,var(--red) 0%,#d122ff 52%,var(--blue) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero-tagline{font-size:clamp(17px,2.6vw,24px);color:var(--ink-soft);max-width:540px;margin-bottom:34px;font-weight:500;line-height:1.75}
 .hero-contact{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:36px}
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
@@ -276,25 +274,15 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:300}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ============ 主页 背景 / 阿尔伯斯《向正方形致敬》装置 ============ */
+/* ============ 主页 背景 / 球体 ============ */
 .hero-bg{position:absolute;inset:0;z-index:-2;overflow:hidden}
-.dotgrid{position:absolute;inset:0;background-image:radial-gradient(circle,var(--line) 1.2px,transparent 1.2px);background-size:26px 26px;opacity:.6;-webkit-mask-image:radial-gradient(circle at 50% 42%,#000 0%,transparent 76%);mask-image:radial-gradient(circle at 50% 42%,#000 0%,transparent 76%)}
 .blob{position:absolute;border-radius:50%;filter:blur(74px);opacity:.5;animation:blobMove 22s ease-in-out infinite}
 .blob-1{width:46vw;height:46vw;background:radial-gradient(circle,#ffd4d4 0%,var(--red) 46%,transparent 72%);top:-15%;left:-12%}
 .blob-2{width:40vw;height:40vw;background:radial-gradient(circle,#d2dcff 0%,var(--blue) 46%,transparent 72%);bottom:-16%;right:-10%;animation-delay:-11s}
 @keyframes blobMove{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(6%,8%) scale(1.12)}66%{transform:translate(-5%,-6%) scale(.94)}}
 
-.hero-art{position:relative;z-index:1;width:100%;max-width:470px;aspect-ratio:1;margin:0 auto;opacity:0;transform:scale(.96);transition:opacity 1s .15s ease,transform 1s .15s ease}
+.hero-art{position:relative;z-index:1;width:100%;max-width:440px;aspect-ratio:1;margin:0 auto;opacity:0;transform:scale(.96);transition:opacity 1s .15s ease,transform 1s .15s ease}
 body.loaded .hero-art{opacity:1;transform:none}
-.art-frame{position:absolute;inset:5%;border:1.5px dashed var(--line);border-radius:28px;transform:rotate(7deg)}
-/* 阿尔伯斯「透明面纱」：半透明色块重叠，红×蓝产生光学混合的紫 */
-.art-sq{position:absolute;border-radius:14px}
-.art-sq-1{width:76%;height:76%;left:5%;top:7%;background:color-mix(in srgb,var(--blue) 86%,transparent)}
-.art-sq-2{width:58%;height:58%;right:4%;bottom:9%;background:color-mix(in srgb,var(--red) 58%,transparent)}
-.art-sq-3{width:38%;height:38%;left:31%;top:31%;background:color-mix(in srgb,var(--white) 55%,transparent);border:1.5px solid var(--line);backdrop-filter:blur(2px)}
-.art-ring{position:absolute;border-radius:50%;border:1.5px solid var(--line)}
-.art-ring-1{width:64%;height:64%;left:18%;top:18%;animation:spin 30s linear infinite}
-.art-ring-2{width:86%;height:86%;left:7%;top:7%;border-style:dotted;animation:spin 48s linear infinite reverse}
 .deco-red{
   position:absolute;right:1%;top:4%;width:47%;height:47%;border-radius:50%;
   background:radial-gradient(circle at 31% 26%, #ffa3a3 0%, var(--red) 44%, #7a0000 100%);
@@ -476,13 +464,12 @@ body.loaded .hero-art{opacity:1;transform:none}
     <div class="container">
       <div class="hero">
         <div class="hero-bg">
-          <div class="dotgrid"></div>
           <div class="blob blob-1"></div>
           <div class="blob blob-2"></div>
         </div>
         <div class="hero-body">
           <p class="hero-role reveal"><span class="bar"></span><span data-bind="role"></span></p>
-          <h1 class="hero-name reveal"><span class="name-solid" data-bind="name"></span><span class="name-dot"></span><span class="name-outline" data-bind="name"></span></h1>
+          <h1 class="hero-name reveal"><span class="name-solid" data-bind="name"></span></h1>
           <p class="hero-tagline reveal" data-bind="tagline"></p>
           <div class="hero-contact reveal" id="heroSocial"></div>
           <div class="hero-actions reveal">
@@ -491,12 +478,6 @@ body.loaded .hero-art{opacity:1;transform:none}
           </div>
         </div>
         <div class="hero-art" aria-hidden="true">
-          <div class="art-frame"></div>
-          <div class="art-sq art-sq-1"></div>
-          <div class="art-sq art-sq-2"></div>
-          <div class="art-sq art-sq-3"></div>
-          <div class="art-ring art-ring-1"></div>
-          <div class="art-ring art-ring-2"></div>
           <div class="deco-red"></div>
           <div class="deco-blue"></div>
           <div class="deco-shadow"></div>
@@ -727,11 +708,11 @@ body.loaded .hero-art{opacity:1;transform:none}
       { title: "三体", author: "刘慈欣", note: "科幻入门，震撼的想象力。", rating: 5, review: "宏大的宇宙叙事。", status: "已读", cover: "" }
     ],
     games: [
-      { title: "我的世界 Minecraft", platform: "PC", note: "创造力与建造的自由。", rating: 5, completion: 100, review: "无限的创造可能。", status: "已通关", hours: "500+" },
-      { title: "塞尔达传说：旷野之息", platform: "Switch", note: "开放世界与探索的乐趣。", rating: 5, completion: 90, review: "开放世界的标杆。", status: "进行中", hours: "120" },
-      { title: "原神", platform: "PC/移动", note: "美术与开放世界的结合。", rating: 4, completion: 60, review: "美术很顶，日常略肝。", status: "进行中", hours: "300+" },
-      { title: "星际拓荒 Outer Wilds", platform: "PC", note: "用知识驱动的叙事。", rating: 5, completion: 100, review: "知识就是进度。", status: "已通关", hours: "25" },
-      { title: "双人成行", platform: "PC", note: "和朋友一起通关的合作佳作。", rating: 5, completion: 100, review: "合作游戏的巅峰。", status: "已通关", hours: "15" }
+      { title: "我的世界 Minecraft", platform: "PC", note: "创造力与建造的自由。", rating: 5, completion: 100, review: "无限的创造可能。", status: "已通关", hours: "500+", cover: "" },
+      { title: "塞尔达传说：旷野之息", platform: "Switch", note: "开放世界与探索的乐趣。", rating: 5, completion: 90, review: "开放世界的标杆。", status: "进行中", hours: "120", cover: "" },
+      { title: "原神", platform: "PC/移动", note: "美术与开放世界的结合。", rating: 4, completion: 60, review: "美术很顶，日常略肝。", status: "进行中", hours: "300+", cover: "" },
+      { title: "星际拓荒 Outer Wilds", platform: "PC", note: "用知识驱动的叙事。", rating: 5, completion: 100, review: "知识就是进度。", status: "已通关", hours: "25", cover: "" },
+      { title: "双人成行", platform: "PC", note: "和朋友一起通关的合作佳作。", rating: 5, completion: 100, review: "合作游戏的巅峰。", status: "已通关", hours: "15", cover: "" }
     ],
     resume: {
       photo: "",
@@ -784,7 +765,7 @@ body.loaded .hero-art{opacity:1;transform:none}
     if(typeof d.resume.summary !== 'string') d.resume.summary = def.resume.summary;
     if(typeof d.resume.photo !== 'string') d.resume.photo = def.resume.photo || '';
     (d.reading||[]).forEach(r=>{ if(!r||typeof r!=='object') return; if(typeof r.rating!=='number') r.rating=0; if(typeof r.review!=='string') r.review=''; if(typeof r.cover!=='string') r.cover=''; if(typeof r.status!=='string') r.status='已读'; });
-    (d.games||[]).forEach(g=>{ if(!g||typeof g!=='object') return; if(typeof g.rating!=='number') g.rating=0; if(typeof g.completion!=='number') g.completion=100; if(typeof g.review!=='string') g.review=''; if(typeof g.status!=='string') g.status='已通关'; if(typeof g.hours!=='string') g.hours=''; });
+    (d.games||[]).forEach(g=>{ if(!g||typeof g!=='object') return; if(typeof g.rating!=='number') g.rating=0; if(typeof g.completion!=='number') g.completion=100; if(typeof g.review!=='string') g.review=''; if(typeof g.status!=='string') g.status='已通关'; if(typeof g.hours!=='string') g.hours=''; if(typeof g.cover!=='string') g.cover=''; });
     return d;
   }
 
@@ -1051,8 +1032,12 @@ body.loaded .hero-art{opacity:1;transform:none}
     const el = document.getElementById('gameList');
     el.innerHTML = data.games.map((g,i)=>{
       const comp = Math.max(0, Math.min(100, g.completion||0));
+      const cover = g.cover
+        ? '<span class="thumb"><img src="'+esc(g.cover)+'" alt=""></span>'
+        : '<span class="thumb">'+esc(String(g.title||'游').charAt(0))+'</span>';
       return '<div class="item" data-open-game="'+i+'">'
         + (edit ? '<button class="rm-btn" data-rm="games" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
+        + cover
         + '<div class="body">'
         + '<div class="t" data-bind="games.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(g.title)+'</div>'
         + '<div class="sub">平台：<span data-bind="games.'+i+'.platform" contenteditable="'+(edit?'true':'false')+'">'+esc(g.platform)+'</span>'+(g.hours?' · '+esc(g.hours)+' 小时':'')+'</div>'
@@ -1126,8 +1111,16 @@ body.loaded .hero-art{opacity:1;transform:none}
     if(!g) return;
     detail = { kind:'game', i:i };
     const comp = Math.max(0, Math.min(100, g.completion||0));
+    const cover = g.cover
+      ? '<img src="'+esc(g.cover)+'" alt="封面">'
+      : '<span class="cover-letter">'+esc(String(g.title||'游').charAt(0))+'</span>';
     const html =
-      '<div class="detail-title">'+esc(g.title)+'</div>'
+      '<div class="cover">'+cover+'</div>'
+      + (editing
+          ? '<label class="field-label">封面图片链接<input id="gameCover" type="text" value="'+esc(g.cover||'')+'" placeholder="粘贴图片 URL，或用下方自动匹配"></label>'
+            + '<button class="btn btn-ghost" id="gameAutoCover" style="width:100%;justify-content:center;padding:11px 16px">🖼 按名称自动匹配图片</button>'
+          : '')
+      + '<div class="detail-title">'+esc(g.title)+'</div>'
       + '<div class="detail-sub">'+esc(g.platform||'')+(g.hours?' · '+esc(g.hours)+' 小时':'')+'</div>'
       + '<div class="detail-row"><span class="detail-label">状态</span>'+statusPills(g.status||'已通关', ['未开始','进行中','已通关','弃坑'])+'</div>'
       + '<div class="detail-row"><span class="detail-label">评分</span><div class="stars'+(editing?'':' readonly')+'">'+starsUI(g.rating||0)+'</div></div>'
@@ -1146,6 +1139,44 @@ body.loaded .hero-art{opacity:1;transform:none}
     document.getElementById('gameSheet').classList.remove('show');
     detail = null;
     save();
+  }
+
+  /* ============ 游戏封面：按名称自动匹配 ============ */
+  function autoMatchGameCover(title, cb){
+    title = String(title||'').trim();
+    if(!title){ cb && cb(null); return; }
+    function search(lang, done){
+      const url = 'https://'+lang+'.wikipedia.org/w/api.php'
+        + '?action=query&generator=search&gsrsearch='+encodeURIComponent(title)
+        + '&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=400'
+        + '&format=json&origin=*&redirects=1';
+      fetch(url).then(function(r){ return r.json(); }).then(function(j){
+        if(j && j.query && j.query.pages){
+          for(const k in j.query.pages){
+            const p = j.query.pages[k];
+            if(p.thumbnail && p.thumbnail.source){ done(p.thumbnail.source); return; }
+          }
+        }
+        done(null);
+      }).catch(function(){ done(null); });
+    }
+    search('zh', function(src){
+      if(src) cb(src);
+      else search('en', function(src2){ cb(src2); });
+    });
+  }
+  function autoFillGameCovers(){
+    data.games.forEach(function(g, i){
+      if(g && !g.cover){
+        autoMatchGameCover(g.title, function(src){
+          if(src && data.games[i] && !data.games[i].cover){
+            data.games[i].cover = src;
+            renderGames(editing);
+            save();
+          }
+        });
+      }
+    });
   }
 
   /* ============ 简历头部 ============ */
@@ -1422,7 +1453,7 @@ body.loaded .hero-art{opacity:1;transform:none}
         methods: {kind:'wechat', value:'新微信号'},
         projects: {title:'新项目', desc:'项目描述', tags:'标签1, 标签2', link:'https://'},
         reading: {title:'书名', author:'作者', note:'读后感', rating:0, review:'', cover:'', status:'想读'},
-        games: {title:'游戏名', platform:'平台', note:'点评', rating:0, completion:0, review:'', status:'未开始', hours:''},
+        games: {title:'游戏名', platform:'平台', note:'点评', rating:0, completion:0, review:'', status:'未开始', hours:'', cover:''},
         experience: {period:'2026 — 至今', role:'职位', org:'公司', desc:'工作内容'},
         education: {period:'年份', degree:'学位', org:'学校'}
       }[key];
@@ -1484,6 +1515,23 @@ body.loaded .hero-art{opacity:1;transform:none}
       playClick();
       return;
     }
+    // 游戏封面：按名称自动匹配
+    if(e.target.closest('#gameAutoCover')){
+      if(!detail || detail.kind!=='game') return;
+      const g = data.games[detail.i];
+      const btn = e.target.closest('#gameAutoCover');
+      btn.disabled = true; btn.textContent = '🖼 正在匹配…';
+      playClick();
+      autoMatchGameCover(g.title, function(src){
+        btn.disabled = false; btn.textContent = src ? '🖼 已匹配，点此重试' : '🖼 未找到，点此重试';
+        if(src){
+          data.games[detail.i].cover = src;
+          const inp = document.getElementById('gameCover'); if(inp) inp.value = src;
+          const cv = document.querySelector('#gameDetail .cover'); if(cv) cv.innerHTML = '<img src="'+esc(src)+'" alt="封面">';
+        }
+      });
+      return;
+    }
     // 关闭本页（编辑态右上角 ×）
     if(e.target.closest('#closePageBtn')){ closePage(); return; }
     // AI 助手
@@ -1519,6 +1567,7 @@ body.loaded .hero-art{opacity:1;transform:none}
     else if(t.id === 'bookReview'){ data.reading[detail.i].review = t.value; }
     else if(t.id === 'gameReview'){ data.games[detail.i].review = t.value; }
     else if(t.id === 'gameHours'){ data.games[detail.i].hours = t.value; }
+    else if(t.id === 'gameCover'){ data.games[detail.i].cover = t.value; }
     else if(t.id === 'gameComplete'){
       const v = Math.max(0, Math.min(100, +t.value || 0));
       data.games[detail.i].completion = v;
@@ -1551,6 +1600,7 @@ body.loaded .hero-art{opacity:1;transform:none}
     applyTheme(localStorage.getItem('delta_theme') || 'light');
     data = await loadDataAsync();
     renderAll(false);
+    autoFillGameCovers();
     updateAuthUI();
     initCursor();
     initParallax();
