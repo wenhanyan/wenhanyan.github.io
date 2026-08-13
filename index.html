@@ -139,14 +139,21 @@ main{min-height:70vh}
 .container{max-width:1120px;margin:0 auto}
 
 /* ============ Hero（主页） ============ */
-.hero{position:relative;min-height:calc(100vh - 200px);display:grid;grid-template-columns:1.06fr .94fr;align-items:center;gap:clamp(30px,5vw,72px)}
-.hero-body{position:relative;z-index:2}
-.hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.26em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:26px;display:flex;align-items:center}
-.hero-role .bar{display:inline-block;width:40px;height:2px;background:linear-gradient(90deg,var(--red),var(--blue));border-radius:2px;margin-right:16px}
-.hero-name{position:relative;font-size:clamp(52px,11vw,132px);font-weight:900;line-height:.94;letter-spacing:-.04em;margin-bottom:24px}
-.hero-name .name-solid{display:inline-block;background:linear-gradient(115deg,var(--red) 0%,var(--blue) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero-tagline{font-size:clamp(17px,2.6vw,24px);color:var(--ink-soft);max-width:540px;margin-bottom:34px;font-weight:500;line-height:1.75}
-.hero-contact{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:36px}
+.hero{position:relative;min-height:calc(100vh - 220px);display:flex;flex-direction:column;justify-content:center}
+.hero-deco{position:absolute;z-index:-1}
+.deco-red{width:clamp(140px,24vw,300px);height:clamp(140px,24vw,300px);background:var(--red);border-radius:50%;top:4%;right:2%;opacity:.9;filter:saturate(1.2)}
+.deco-blue{width:clamp(70px,12vw,140px);height:clamp(70px,12vw,140px);background:var(--blue);bottom:8%;left:4%;transform:rotate(12deg)}
+[data-theme="dark"] .deco-red{opacity:.55}
+[data-theme="dark"] .deco-blue{opacity:.55}
+.hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.22em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:22px}
+.hero-role .bar{display:inline-block;width:34px;height:2px;background:var(--red);vertical-align:middle;margin-right:14px}
+.hero-name{font-size:clamp(46px,11vw,120px);font-weight:900;line-height:.98;letter-spacing:-.03em;margin-bottom:18px}
+.hero-name .grad{
+  background:linear-gradient(120deg,var(--red) 0%,var(--blue) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-tagline{font-size:clamp(17px,2.6vw,24px);color:var(--ink-soft);max-width:560px;margin-bottom:38px;font-weight:500}
+.hero-contact{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:40px}
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
 
 .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;transition:transform .2s,background .2s,color .2s,box-shadow .2s}
@@ -274,34 +281,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:300}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ============ 主页 背景 / 球体 ============ */
-.hero-bg{position:absolute;inset:0;z-index:-2;overflow:hidden}
-.blob{position:absolute;border-radius:50%;filter:blur(74px);opacity:.5;animation:blobMove 22s ease-in-out infinite}
-.blob-1{width:46vw;height:46vw;background:radial-gradient(circle,#ffd4d4 0%,var(--red) 46%,transparent 72%);top:-15%;left:-12%}
-.blob-2{width:40vw;height:40vw;background:radial-gradient(circle,#d2dcff 0%,var(--blue) 46%,transparent 72%);bottom:-16%;right:-10%;animation-delay:-11s}
-@keyframes blobMove{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(6%,8%) scale(1.12)}66%{transform:translate(-5%,-6%) scale(.94)}}
-
-.hero-art{position:relative;z-index:1;width:100%;max-width:440px;aspect-ratio:1;margin:0 auto;opacity:0;transform:scale(.96);transition:opacity 1s .15s ease,transform 1s .15s ease}
-body.loaded .hero-art{opacity:1;transform:none}
-.deco-red{
-  position:absolute;right:1%;top:4%;width:47%;height:47%;border-radius:50%;
-  background:radial-gradient(circle at 31% 26%, #ffa3a3 0%, var(--red) 44%, #7a0000 100%);
-  box-shadow:inset -26px -26px 54px rgba(0,0,0,.4), inset 18px 18px 42px rgba(255,255,255,.28), 0 40px 80px -30px rgba(255,31,31,.7);
-  animation:floatRed 6s ease-in-out infinite;
-}
-.deco-red::after{content:"";position:absolute;top:15%;left:19%;width:32%;height:22%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.92),rgba(255,255,255,0));filter:blur(3px)}
-.deco-red::before{content:"";position:absolute;inset:-16%;border-radius:50%;border:2px dashed rgba(255,255,255,.38);animation:spin 24s linear infinite}
-.deco-blue{
-  position:absolute;left:3%;bottom:5%;width:27%;height:27%;border-radius:50%;
-  background:radial-gradient(circle at 30% 25%, #a2b8ff 0%, var(--blue) 46%, #00155f 100%);
-  box-shadow:inset -16px -16px 34px rgba(0,0,0,.42), inset 11px 11px 26px rgba(255,255,255,.24), 0 26px 54px -22px rgba(27,77,255,.65);
-  animation:floatBlue 7s ease-in-out infinite;
-}
-.deco-shadow{position:absolute;right:7%;top:51%;width:38%;height:8%;border-radius:50%;background:radial-gradient(ellipse,rgba(11,11,12,.24),transparent 70%);filter:blur(6px);animation:shadowPulse 6s ease-in-out infinite}
-@keyframes floatRed{0%,100%{transform:translateY(0)}50%{transform:translateY(-24px)}}
-@keyframes floatBlue{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
-@keyframes shadowPulse{0%,100%{transform:scaleX(1);opacity:.85}50%{transform:scaleX(.82);opacity:.5}}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* 主页装饰圆（红/蓝）样式见上方 Hero 区块 */
 
 /* ============ 关于我 动效 ============ */
 .skill{transition:transform .2s,color .2s,border-color .2s;animation:chipIn .45s ease backwards}
@@ -404,8 +384,6 @@ body.loaded .hero-art{opacity:1;transform:none}
 
 /* ============ 主页响应式 ============ */
 @media(max-width:880px){
-  .hero{grid-template-columns:1fr;min-height:auto;gap:0;padding-top:12px}
-  .hero-art{order:-1;max-width:270px;margin:0 auto 30px}
   .hero-name{font-size:clamp(48px,17vw,88px)}
 }
 
@@ -463,24 +441,15 @@ body.loaded .hero-art{opacity:1;transform:none}
   <section id="view-home" class="view active">
     <div class="container">
       <div class="hero">
-        <div class="hero-bg">
-          <div class="blob blob-1"></div>
-          <div class="blob blob-2"></div>
-        </div>
-        <div class="hero-body">
-          <p class="hero-role reveal"><span class="bar"></span><span data-bind="role"></span></p>
-          <h1 class="hero-name reveal"><span class="name-solid" data-bind="name"></span></h1>
-          <p class="hero-tagline reveal" data-bind="tagline"></p>
-          <div class="hero-contact reveal" id="heroSocial"></div>
-          <div class="hero-actions reveal">
-            <a class="btn btn-red" data-goto="projects">查看项目 →</a>
-            <a class="btn btn-ghost" data-goto="about">关于我</a>
-          </div>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="deco-red"></div>
-          <div class="deco-blue"></div>
-          <div class="deco-shadow"></div>
+        <div class="hero-deco deco-red"></div>
+        <div class="hero-deco deco-blue"></div>
+        <p class="hero-role reveal"><span class="bar"></span><span data-bind="role"></span></p>
+        <h1 class="hero-name reveal"><span class="grad" data-bind="name"></span></h1>
+        <p class="hero-tagline reveal" data-bind="tagline"></p>
+        <div class="hero-contact reveal" id="heroSocial"></div>
+        <div class="hero-actions reveal">
+          <a class="btn btn-red" data-goto="projects">查看项目 →</a>
+          <a class="btn btn-ghost" data-goto="about">关于我</a>
         </div>
       </div>
     </div>
@@ -1346,6 +1315,7 @@ body.loaded .hero-art{opacity:1;transform:none}
           if(res.ok){ toast('已保存 · 已同步全网 ✓'); }
           else{
             let m = res.error ? (res.error.message || res.error.details || res.error.hint || String(res.error)) : '';
+            if(/site_content|PGRST205|Could not find the table/i.test(m)) m = 'Supabase 里还没有 site_content 表，请先在 SQL Editor 建表';
             toast('已保存到本机 · 云端同步失败' + (m ? '：' + m : ''));
           }
         });
