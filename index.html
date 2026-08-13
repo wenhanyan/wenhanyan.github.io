@@ -323,7 +323,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     <button class="nav-btn" data-view="resume"><span class="idx">06</span>简历</button>
   </nav>
   <div class="nav-right">
-    <button class="icon-btn" id="authBtn" title="登录后可同步内容到云端（全网可见）" aria-label="登录">🔒</button>
+    <button class="edit-pill" id="authBtn" title="登录后可同步内容到云端（全网可见）">🔒 登录</button>
     <button class="icon-btn" id="themeBtn" title="夜间模式" aria-label="切换夜间模式">🌙</button>
     <button class="edit-pill" id="editToggle"><span>✎</span> 编辑</button>
   </div>
@@ -648,11 +648,11 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     const btn = document.getElementById('authBtn');
     const sess = await currentSession();
     if(sess && sess.user){
-      btn.textContent = '🔓';
-      btn.title = '已登录：' + (sess.user.email || sess.user.id) + ' · 点击退出';
+      btn.textContent = '✓ 已登录 · 退出';
+      btn.title = '当前账号：' + (sess.user.email || sess.user.id) + ' · 点击退出';
       btn.dataset.state = 'in';
     }else{
-      btn.textContent = '🔒';
+      btn.textContent = '🔒 登录';
       btn.title = '登录后可把内容同步到云端（全网可见）';
       btn.dataset.state = 'out';
     }
