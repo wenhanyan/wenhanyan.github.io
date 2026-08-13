@@ -144,7 +144,7 @@ main{min-height:70vh}
 .hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.26em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:26px;display:flex;align-items:center}
 .hero-role .bar{display:inline-block;width:40px;height:2px;background:linear-gradient(90deg,var(--red),var(--blue));border-radius:2px;margin-right:16px}
 .hero-name{position:relative;font-size:clamp(52px,11vw,132px);font-weight:900;line-height:.94;letter-spacing:-.04em;margin-bottom:24px}
-.hero-name .name-solid{display:inline-block;background:linear-gradient(115deg,var(--red) 0%,#d122ff 52%,var(--blue) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-name .name-solid{display:inline-block;background:linear-gradient(115deg,var(--red) 0%,var(--blue) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hero-tagline{font-size:clamp(17px,2.6vw,24px);color:var(--ink-soft);max-width:540px;margin-bottom:34px;font-weight:500;line-height:1.75}
 .hero-contact{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:36px}
 .hero-actions{display:flex;gap:14px;flex-wrap:wrap}
@@ -1166,16 +1166,20 @@ body.loaded .hero-art{opacity:1;transform:none}
     });
   }
   function autoFillGameCovers(){
-    data.games.forEach(function(g, i){
-      if(g && !g.cover){
-        autoMatchGameCover(g.title, function(src){
-          if(src && data.games[i] && !data.games[i].cover){
-            data.games[i].cover = src;
-            renderGames(editing);
-            save();
-          }
-        });
-      }
+    const missing = [];
+    data.games.forEach(function(g, i){ if(g && !g.cover) missing.push(i); });
+    if(!missing.length) return;
+    let pending = missing.length;
+    missing.forEach(function(i){
+      autoMatchGameCover(data.games[i].title, function(src){
+        if(src && data.games[i] && !data.games[i].cover) data.games[i].cover = src;
+        if(--pending === 0){
+          renderGames(editing);
+          try{ localStorage.setItem('delta_data_v2', JSON.stringify(data)); }catch(e){}
+          // 仅在已登录时静默同步云端，避免每次加载都弹提示
+          currentSession().then(function(sess){ if(sess) pushRemote(data); });
+        }
+      });
     });
   }
 
@@ -1339,7 +1343,11 @@ body.loaded .hero-art{opacity:1;transform:none}
     currentSession().then(function(sess){
       if(sess){
         pushRemote(data).then(function(res){
-          toast(res.ok ? '已保存 · 已同步全网 ✓' : '已保存到本机 · 云端同步失败');
+          if(res.ok){ toast('已保存 · 已同步全网 ✓'); }
+          else{
+            let m = res.error ? (res.error.message || res.error.details || res.error.hint || String(res.error)) : '';
+            toast('已保存到本机 · 云端同步失败' + (m ? '：' + m : ''));
+          }
         });
       }else{
         toast('已保存到本机 · 登录后可同步全网');
