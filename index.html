@@ -264,6 +264,19 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 .tb-social button:hover::after{width:100%}
 .kind-select{font-family:var(--font-mono);font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);padding:4px 6px;cursor:pointer}
 
+/* ============ 登录弹窗 ============ */
+.modal-backdrop{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.modal-backdrop.show{opacity:1;visibility:visible}
+.modal-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;width:min(92vw,380px);box-shadow:var(--shadow)}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--ink-soft);margin-bottom:20px;line-height:1.6}
+.modal-card label{display:block;font-size:12px;font-family:var(--font-mono);letter-spacing:.06em;color:var(--ink-soft);margin:12px 0 6px}
+.modal-card input{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
+.modal-card input:focus{outline:none;border-color:var(--blue)}
+.modal-err{min-height:18px;font-size:12px;color:var(--red);margin-top:10px}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-actions .btn{flex:1;justify-content:center}
+
 /* ============ Toast ============ */
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:300}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -310,6 +323,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     <button class="nav-btn" data-view="resume"><span class="idx">06</span>简历</button>
   </nav>
   <div class="nav-right">
+    <button class="icon-btn" id="authBtn" title="登录后可同步内容到云端（全网可见）" aria-label="登录">🔒</button>
     <button class="icon-btn" id="themeBtn" title="夜间模式" aria-label="切换夜间模式">🌙</button>
     <button class="edit-pill" id="editToggle"><span>✎</span> 编辑</button>
   </div>
@@ -444,11 +458,39 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   <button class="btn btn-ghost" id="doneBtn" style="padding:10px 20px">完成</button>
 </div>
 
+<!-- 登录弹窗 -->
+<div class="modal-backdrop" id="authModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <h3 class="modal-title">登录编辑</h3>
+    <p class="modal-sub">登录后，保存的内容会同步到云端，全网看到最新版本。只有你自己能修改。</p>
+    <label for="authEmail">邮箱</label>
+    <input id="authEmail" type="email" placeholder="cuixiao2007@icloud.com" autocomplete="username">
+    <label for="authPass">密码</label>
+    <input id="authPass" type="password" placeholder="••••••••" autocomplete="current-password">
+    <div class="modal-err" id="authErr"></div>
+    <div class="modal-actions">
+      <button class="btn btn-blue" id="authLoginBtn">登录</button>
+      <button class="btn btn-ghost" id="authCancelBtn">取消</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   "use strict";
+
+  /* ============ Supabase 云端（公开读 / 登录写） ============ */
+  const SUPABASE_URL = 'https://ayyxxsexdglgtrgvuwyw.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5eXh4c2V4ZGdsZ3RyZ3V2d3l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MjA2OTksImV4cCI6MjEwMjE5NjY5OX0._AU0oaFcVrHKIP8Tpo-C5q0Mxf-_A3FwonDju3COmpo';
+  let sb = null;
+  try{
+    if(window.supabase){
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { persistSession: true, autoRefreshToken: true });
+    }
+  }catch(e){}
 
   /* ============ 默认数据 ============ */
   const DEFAULT_DATA = {
@@ -535,7 +577,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     return d;
   }
 
-  function loadData(){
+  async function loadDataAsync(){
+    // 1) 分享链接（?d=）——最高优先级，显式快照
     const params = new URLSearchParams(location.search);
     const d = params.get('d');
     if(d){
@@ -546,14 +589,21 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         return parsed;
       }catch(e){ /* 忽略损坏的链接 */ }
     }
+    // 2) 云端（Supabase，公开读）——全网看到的最新内容
+    try{
+      const remote = await fetchRemote();
+      if(remote) return normalize(remote);
+    }catch(e){}
+    // 3) 本地缓存
     try{
       const s = localStorage.getItem('delta_data_v2');
       if(s) return normalize(JSON.parse(s));
     }catch(e){}
+    // 4) 默认内容
     return normalize(JSON.parse(JSON.stringify(DEFAULT_DATA)));
   }
 
-  let data = loadData();
+  let data = normalize(JSON.parse(JSON.stringify(DEFAULT_DATA))); // 占位，稍后由 init 异步加载
 
   function getPath(obj, path){
     return path.split('.').reduce((o,k)=>(o==null?undefined:o[k]), obj);
@@ -566,6 +616,80 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   }
   function esc(s){
     return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ============ 云端读写与登录 ============ */
+  async function fetchRemote(){
+    if(!sb) return null;
+    try{
+      const { data: row, error } = await sb.from('site_content').select('content').eq('id', 1).maybeSingle();
+      if(error || !row || !row.content) return null;
+      return row.content;
+    }catch(e){ return null; }
+  }
+  async function pushRemote(obj){
+    if(!sb) return { ok:false, error:'未加载 Supabase' };
+    try{
+      const { error } = await sb.from('site_content').upsert(
+        { id:1, content:obj, updated_at: new Date().toISOString() },
+        { onConflict: 'id' }
+      );
+      return { ok: !error, error };
+    }catch(e){ return { ok:false, error:e }; }
+  }
+  async function currentSession(){
+    if(!sb) return null;
+    try{
+      const { data } = await sb.auth.getSession();
+      return (data && data.session) ? data.session : null;
+    }catch(e){ return null; }
+  }
+  async function updateAuthUI(){
+    const btn = document.getElementById('authBtn');
+    const sess = await currentSession();
+    if(sess && sess.user){
+      btn.textContent = '🔓';
+      btn.title = '已登录：' + (sess.user.email || sess.user.id) + ' · 点击退出';
+      btn.dataset.state = 'in';
+    }else{
+      btn.textContent = '🔒';
+      btn.title = '登录后可把内容同步到云端（全网可见）';
+      btn.dataset.state = 'out';
+    }
+  }
+  function openAuth(){
+    document.getElementById('authModal').classList.add('show');
+    setAuthErr('');
+    setTimeout(()=>{ const el = document.getElementById('authEmail'); if(el) el.focus(); }, 60);
+  }
+  function closeAuth(){
+    document.getElementById('authModal').classList.remove('show');
+  }
+  function setAuthErr(msg){
+    document.getElementById('authErr').textContent = msg || '';
+  }
+  async function doLogin(){
+    if(!sb){ setAuthErr('未加载 Supabase，请检查网络后刷新重试'); return; }
+    const btn = document.getElementById('authLoginBtn');
+    if(btn.disabled) return; // 防止重复提交
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPass').value;
+    if(!email || !pass){ setAuthErr('请输入邮箱和密码'); return; }
+    btn.disabled = true; btn.textContent = '登录中…';
+    try{
+      const { error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+      if(error){ setAuthErr('登录失败：' + error.message); return; }
+      document.getElementById('authPass').value = '';
+      closeAuth();
+      await updateAuthUI();
+      toast('登录成功 ✓ 现在「保存」即可同步全网');
+    }catch(err){ setAuthErr('登录失败：' + (err.message || err)); }
+    finally{ btn.disabled = false; btn.textContent = '登录'; }
+  }
+  async function doLogout(){
+    if(sb){ try{ await sb.auth.signOut(); }catch(e){} }
+    await updateAuthUI();
+    toast('已退出登录');
   }
 
   /* ============ 音效（Web Audio，轻微点击） ============ */
@@ -767,11 +891,18 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   }
 
   /* ============ 保存 / 分享 / 重置 ============ */
-  function save(){
+  async function save(){
     collectEdits();
     try{ localStorage.setItem('delta_data_v2', JSON.stringify(data)); }catch(e){}
     renderAll(editing);
-    toast('已保存 ✓');
+    // 已登录则同步到云端（全网可见）
+    const sess = await currentSession();
+    if(sess){
+      const res = await pushRemote(data);
+      toast(res.ok ? '已保存 · 已同步全网 ✓' : '已保存到本机 · 云端同步失败');
+    }else{
+      toast('已保存到本机 · 登录后可同步全网');
+    }
   }
   function share(){
     collectEdits();
@@ -903,6 +1034,25 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(e.target.closest('#shareBtn')){ share(); return; }
     if(e.target.closest('#doneBtn')){ save(); setEdit(false); return; }
     if(e.target.closest('#resetBtn')){ reset(); return; }
+    // 登录弹窗相关
+    if(e.target.closest('#authBtn')){
+      playClick();
+      const st = e.target.closest('#authBtn').dataset.state;
+      if(st === 'in') doLogout(); else openAuth();
+      return;
+    }
+    if(e.target.closest('#authLoginBtn')){ doLogin(); return; }
+    if(e.target.closest('#authCancelBtn')){ closeAuth(); return; }
+    if(e.target.classList && e.target.classList.contains('modal-backdrop')){ closeAuth(); return; }
+  });
+
+  // 登录弹窗：回车登录 / Esc 关闭
+  document.addEventListener('keydown', function(e){
+    const modal = document.getElementById('authModal');
+    if(modal.classList.contains('show')){
+      if(e.key === 'Enter'){ e.preventDefault(); doLogin(); }
+      else if(e.key === 'Escape'){ closeAuth(); }
+    }
   });
 
   /* ============ 开场动画 ============ */
@@ -921,9 +1071,11 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   }, LOADER_MS);
 
   /* ============ 初始化 ============ */
-  (function init(){
+  (async function init(){
     applyTheme(localStorage.getItem('delta_theme') || 'light');
+    data = await loadDataAsync();
     renderAll(false);
+    updateAuthUI();
   })();
 })();
 </script>
