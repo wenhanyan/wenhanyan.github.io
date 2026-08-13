@@ -1334,18 +1334,22 @@ body.loaded .hero-art{opacity:1;transform:none}
   }
 
   /* ============ 保存 / 分享 / 重置 ============ */
-  async function save(){
-    collectEdits();
+  function persist(){
     try{ localStorage.setItem('delta_data_v2', JSON.stringify(data)); }catch(e){}
+    currentSession().then(function(sess){
+      if(sess){
+        pushRemote(data).then(function(res){
+          toast(res.ok ? '已保存 · 已同步全网 ✓' : '已保存到本机 · 云端同步失败');
+        });
+      }else{
+        toast('已保存到本机 · 登录后可同步全网');
+      }
+    });
+  }
+  function save(){
+    collectEdits();
     renderAll(editing);
-    // 已登录则同步到云端（全网可见）
-    const sess = await currentSession();
-    if(sess){
-      const res = await pushRemote(data);
-      toast(res.ok ? '已保存 · 已同步全网 ✓' : '已保存到本机 · 云端同步失败');
-    }else{
-      toast('已保存到本机 · 登录后可同步全网');
-    }
+    persist();
   }
   function share(){
     collectEdits();
@@ -1439,9 +1443,11 @@ body.loaded .hero-art{opacity:1;transform:none}
     if(rm){
       playClick();
       const key = rm.dataset.rm, i = +rm.dataset.i;
+      collectEdits();
       if(key==='methods') data.contact.methods.splice(i,1);
       else data[key].splice(i,1);
-      save();
+      renderAll(editing);
+      persist();
       return;
     }
     // 添加按钮
@@ -1457,11 +1463,13 @@ body.loaded .hero-art{opacity:1;transform:none}
         experience: {period:'2026 — 至今', role:'职位', org:'公司', desc:'工作内容'},
         education: {period:'年份', degree:'学位', org:'学校'}
       }[key];
+      collectEdits();
       if(key==='methods') data.contact.methods.push(blank);
       else if(key==='experience') data.resume.experience.push(blank);
       else if(key==='education') data.resume.education.push(blank);
       else data[key].push(blank);
-      save();
+      renderAll(editing);
+      persist();
       return;
     }
     // 主题切换
