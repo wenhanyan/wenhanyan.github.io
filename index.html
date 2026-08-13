@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delta — 个人网站</title>
+<style>
+/* ============ 主题变量 ============ */
+:root{
+  --bg:#ffffff;
+  --bg-soft:#f4f5f7;
+  --ink:#0b0b0c;
+  --ink-soft:#5b5f66;
+  --line:#e7e8ec;
+  --red:#ff1f1f;
+  --blue:#1b4dff;
+  --white:#ffffff;
+  --card:#ffffff;
+  --shadow:0 18px 50px -24px rgba(11,11,12,.25);
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-mono:"SF Mono","JetBrains Mono","Fira Code",ui-monospace,Menlo,monospace;
+}
+[data-theme="dark"]{
+  --bg:#09090b;
+  --bg-soft:#121216;
+  --ink:#f5f5f6;
+  --ink-soft:#9a9ba1;
+  --line:#232329;
+  --red:#ff4d4d;
+  --blue:#4d7aff;
+  --card:#121216;
+  --shadow:0 18px 50px -24px rgba(0,0,0,.8);
+}
+
+/* ============ 基础 ============ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  transition:background .4s ease,color .4s ease;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+[contenteditable]{outline:none;border-radius:4px;transition:background .15s,box-shadow .15s}
+.edit-mode [contenteditable]:hover{background:rgba(27,77,255,.08);box-shadow:0 0 0 1px rgba(27,77,255,.35)}
+.edit-mode [contenteditable]:focus{background:rgba(27,77,255,.10);box-shadow:0 0 0 1.5px var(--blue)}
+[data-theme="dark"].edit-mode [contenteditable]:hover{background:rgba(77,122,255,.14)}
+::selection{background:var(--blue);color:#fff}
+
+/* ============ 开场动画 ============ */
+#loader{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  transition:opacity .7s ease,visibility .7s;
+}
+#loader.done{opacity:0;visibility:hidden;pointer-events:none}
+.loader-word{font-family:var(--font-mono);font-weight:800;font-size:clamp(40px,8vw,88px);letter-spacing:.14em;display:flex}
+.loader-word span{display:inline-block;opacity:0;animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards}
+.loader-word .dot{color:var(--red)}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.loader-line{width:0;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--blue));animation:grow 2.6s .4s cubic-bezier(.6,0,.2,1) forwards}
+@keyframes grow{to{width:clamp(140px,36vw,260px)}}
+.loader-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.3em;color:var(--ink-soft);opacity:0;animation:fade .8s 1.2s forwards}
+@keyframes fade{to{opacity:1}}
+
+/* 内容入场（配合 loader 结束） */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+body.loaded .reveal{opacity:1;transform:none}
+body.loaded .reveal:nth-child(1){transition-delay:.05s}
+body.loaded .reveal:nth-child(2){transition-delay:.14s}
+body.loaded .reveal:nth-child(3){transition-delay:.23s}
+body.loaded .reveal:nth-child(4){transition-delay:.32s}
+body.loaded .reveal:nth-child(5){transition-delay:.41s}
+
+/* ============ 顶部联系条 ============ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px clamp(18px,5vw,56px);
+  font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;
+  border-bottom:1px solid var(--line);
+  color:var(--ink-soft);
+}
+.topbar .tb-left{display:flex;align-items:center;gap:16px}
+.tb-email{color:var(--ink);transition:color .2s}
+.tb-email:hover{color:var(--blue)}
+.tb-email .at{color:var(--red)}
+.tb-social{display:flex;gap:14px}
+.tb-social a{position:relative;color:var(--ink-soft);transition:color .2s}
+.tb-social a:hover{color:var(--red)}
+.tb-social a::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:var(--red);transition:width .25s}
+.tb-social a:hover::after{width:100%}
+
+/* ============ 导航栏 ============ */
+.navbar{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px clamp(18px,5vw,56px);
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:saturate(140%) blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.logo{display:flex;align-items:baseline;gap:8px;font-weight:800;font-size:22px;letter-spacing:.02em}
+.logo .mark{font-family:var(--font-mono)}
+.logo .logo-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--blue));align-self:center}
+.nav{display:flex;gap:4px}
+.nav-btn{
+  border:none;background:none;cursor:pointer;font-family:inherit;
+  font-size:14px;font-weight:600;color:var(--ink-soft);
+  padding:9px 16px;border-radius:999px;position:relative;transition:color .2s,background .2s;
+}
+.nav-btn:hover{color:var(--ink)}
+.nav-btn.active{color:var(--white);background:var(--ink)}
+[data-theme="dark"] .nav-btn.active{color:var(--bg);background:var(--ink)}
+.nav-btn .idx{font-family:var(--font-mono);font-size:10px;margin-right:4px;opacity:.6;vertical-align:2px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);cursor:pointer;font-size:16px;
+  display:grid;place-items:center;transition:transform .2s,background .2s,border-color .2s;
+}
+.icon-btn:hover{transform:translateY(-2px);border-color:var(--blue)}
+.edit-pill{
+  border:1px solid var(--line);background:var(--card);cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:600;color:var(--ink);
+  padding:8px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;transition:.2s;
+}
+.edit-pill:hover{border-color:var(--red);color:var(--red)}
+
+/* ============ 视图 ============ */
+main{min-height:70vh}
+.view{display:none;padding:clamp(40px,8vw,90px) clamp(18px,5vw,56px);animation:viewIn .45s ease}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.container{max-width:1120px;margin:0 auto}
+
+/* ============ Hero（主页） ============ */
+.hero{position:relative;min-height:calc(100vh - 220px);display:flex;flex-direction:column;justify-content:center}
+.hero-deco{position:absolute;z-index:-1}
+.deco-red{width:clamp(140px,24vw,300px);height:clamp(140px,24vw,300px);background:var(--red);border-radius:50%;top:4%;right:2%;opacity:.9;filter:saturate(1.2)}
+.deco-blue{width:clamp(70px,12vw,140px);height:clamp(70px,12vw,140px);background:var(--blue);bottom:8%;left:4%;transform:rotate(12deg)}
+[data-theme="dark"] .deco-red{opacity:.55}
+[data-theme="dark"] .deco-blue{opacity:.55}
+.hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.22em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:22px}
+.hero-role .bar{display:inline-block;width:34px;height:2px;background:var(--red);vertical-align:middle;margin-right:14px}
+.hero-name{font-size:clamp(46px,11vw,120px);font-weight:900;line-height:.98;letter-spacing:-.03em;margin-bottom:18px}
+.hero-name .grad{
+  background:linear-gradient(120deg,var(--red) 0%,var(--blue) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-tagline{font-size:clamp(17px,2.6vw,24px);color:var(--ink-soft);max-width:560px;margin-bottom:38px;font-weight:500}
+.hero-contact{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:40px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;border:1px solid transparent;transition:transform .2s,background .2s,color .2s,box-shadow .2s}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{transform:translateY(-3px);box-shadow:0 14px 30px -12px var(--red)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:hover{transform:translateY(-3px);box-shadow:0 14px 30px -12px var(--blue)}
+.btn-ghost{border-color:var(--line);color:var(--ink);background:transparent}
+.btn-ghost:hover{border-color:var(--ink)}
+
+/* ============ 通用小节标题 ============ */
+.sec-head{margin-bottom:44px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--red)}
+.sec-title{font-size:clamp(30px,5vw,48px);font-weight:900;letter-spacing:-.02em;line-height:1.1}
+.sec-title em{font-style:normal;color:var(--blue)}
+
+/* ============ 项目 ============ */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
+.project-card{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:26px;overflow:hidden;transition:transform .3s,box-shadow .3s,border-color .3s;
+}
+.project-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:transparent}
+.project-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--red),var(--blue));transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.project-card:hover::before{transform:scaleX(1)}
+.project-index{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+.project-title{font-size:20px;font-weight:800;margin-bottom:10px}
+.project-desc{color:var(--ink-soft);font-size:14px;margin-bottom:18px;white-space:pre-line}
+.project-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.tag{font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft)}
+.tag.red{color:var(--red);border-color:var(--red)}
+.tag.blue{color:var(--blue);border-color:var(--blue)}
+.project-link{font-weight:700;font-size:14px;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+.project-link .arr{transition:transform .2s;color:var(--red)}
+.project-link:hover .arr{transform:translate(3px,-3px)}
+
+/* ============ 关于我 ============ */
+.about-wrap{display:grid;grid-template-columns:1.4fr 1fr;gap:44px;align-items:start}
+.bio{font-size:18px;line-height:1.9;color:var(--ink-soft);white-space:pre-line}
+.bio strong{color:var(--ink)}
+.mini-title{font-size:13px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:26px 0 12px}
+.skill-list{display:flex;flex-wrap:wrap;gap:9px}
+.skill{font-family:var(--font-mono);font-size:12px;padding:7px 14px;border-radius:8px;background:var(--bg-soft);border:1px solid var(--line)}
+.skill:nth-child(3n+1){color:var(--red);border-color:var(--red)}
+.skill:nth-child(3n+2){color:var(--blue);border-color:var(--blue)}
+.aside-card{background:var(--bg-soft);border:1px solid var(--line);border-radius:18px;padding:26px}
+.aside-card h3{font-size:14px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:16px}
+
+/* ============ 阅读 / 游戏 列表 ============ */
+.list{display:flex;flex-direction:column;gap:14px}
+.item{display:flex;align-items:baseline;gap:18px;padding:20px 22px;border:1px solid var(--line);border-radius:14px;background:var(--card);transition:border-color .25s,transform .25s}
+.item:hover{border-color:var(--blue);transform:translateX(6px)}
+.item .num{font-family:var(--font-mono);font-size:13px;color:var(--ink-soft);min-width:30px}
+.item .body{flex:1}
+.item .t{font-weight:800;font-size:16px}
+.item .sub{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.item .note{font-size:14px;color:var(--ink-soft);margin-top:8px;white-space:pre-line}
+.item .meta{font-family:var(--font-mono);font-size:12px;color:var(--blue);white-space:nowrap}
+
+/* ============ 简历 ============ */
+.res-sec{margin-bottom:40px}
+.res-sec h3{font-size:14px;font-family:var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--red),var(--blue))}
+.tl-item{position:relative;padding:0 0 26px 0}
+.tl-item::before{content:"";position:absolute;left:-24px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:3px solid var(--blue)}
+.tl-item:nth-child(even)::before{border-color:var(--red)}
+.tl-period{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft)}
+.tl-role{font-size:17px;font-weight:800;margin:2px 0}
+.tl-org{font-size:14px;color:var(--blue);font-weight:600}
+.tl-desc{font-size:14px;color:var(--ink-soft);margin-top:8px;white-space:pre-line;max-width:720px}
+
+/* ============ 页脚 / 编辑条 ============ */
+footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--ink-soft)}
+.foot-logo{font-family:var(--font-mono);font-weight:800;color:var(--ink)}
+.foot-logo .logo-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-left:4px}
+.foot-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.edit-bar{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,140%);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:10px 14px;box-shadow:var(--shadow);z-index:200;
+  transition:transform .4s cubic-bezier(.2,.8,.2,1);
+}
+.edit-bar.show{transform:translate(-50%,0)}
+.edit-bar .hint{font-size:12px;color:var(--ink-soft);margin-right:4px;font-family:var(--font-mono)}
+
+/* 列表增删按钮 */
+.list-actions{display:none;margin:0 0 12px}
+.edit-mode .list-actions{display:flex;gap:8px;align-items:center}
+.add-btn,.rm-btn{border:1px dashed var(--line);background:none;cursor:pointer;font-family:inherit;font-size:12px;color:var(--ink-soft);padding:5px 12px;border-radius:8px;transition:.2s}
+.add-btn:hover{color:var(--blue);border-color:var(--blue)}
+.rm-btn{display:none;border:none;font-size:16px;line-height:1;padding:4px 8px;color:var(--red);opacity:.7;margin-left:auto;align-self:center}
+.edit-mode .rm-btn{display:block}
+.rm-btn:hover{opacity:1}
+.edit-chip{display:inline-flex;align-items:center;gap:8px}
+
+/* ============ 联系方式芯片 ============ */
+.contact-chip{display:inline-flex;flex-direction:column;gap:3px;border:1px solid var(--line);padding:12px 18px;border-radius:14px;background:var(--card);transition:transform .2s,border-color .2s;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink)}
+.contact-chip:hover{border-color:var(--blue);transform:translateY(-2px)}
+.contact-chip .cc-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--ink-soft);text-transform:uppercase}
+.contact-chip .cc-value{font-weight:700;font-size:14px;color:var(--ink)}
+.tb-social button{background:none;border:none;cursor:pointer;font:inherit;color:var(--ink-soft);padding:0;position:relative}
+.tb-social button::after{content:"";position:absolute;left:0;bottom:-3px;width:0;height:1px;background:var(--red);transition:width .25s}
+.tb-social button:hover{color:var(--red)}
+.tb-social button:hover::after{width:100%}
+.kind-select{font-family:var(--font-mono);font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);padding:4px 6px;cursor:pointer}
+
+/* ============ Toast ============ */
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:300}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============ 响应式 ============ */
+@media(max-width:760px){
+  .navbar{flex-wrap:wrap;gap:10px}
+  .nav{order:3;width:100%;overflow-x:auto;justify-content:flex-start;padding-bottom:2px}
+  .nav-btn{padding:8px 12px;font-size:13px;white-space:nowrap}
+  .topbar{flex-direction:column;gap:8px;align-items:flex-start}
+  .about-wrap{grid-template-columns:1fr}
+  .item{flex-wrap:wrap;gap:8px}
+  .item .meta{width:100%}
+  .edit-bar{bottom:12px;border-radius:18px;max-width:94vw}
+}
+</style>
+</head>
+<body>
+
+<!-- 开场动画 -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-word" id="loaderWord"></div>
+  <div class="loader-line"></div>
+  <div class="loader-tag">DELTA · PORTFOLIO</div>
+</div>
+
+<!-- 顶部联系条 -->
+<header class="topbar">
+  <div class="tb-left">
+    <span class="tb-loc reveal" data-bind="contact.location"></span>
+  </div>
+  <div class="tb-social reveal" id="topSocial"></div>
+</header>
+
+<!-- 导航栏 -->
+<header class="navbar">
+  <a class="logo" data-goto="home"><span class="mark">DELTA</span><span class="logo-dot"></span></a>
+  <nav class="nav">
+    <button class="nav-btn active" data-view="home"><span class="idx">01</span>主页</button>
+    <button class="nav-btn" data-view="projects"><span class="idx">02</span>项目</button>
+    <button class="nav-btn" data-view="about"><span class="idx">03</span>关于我</button>
+    <button class="nav-btn" data-view="reading"><span class="idx">04</span>阅读</button>
+    <button class="nav-btn" data-view="games"><span class="idx">05</span>游戏</button>
+    <button class="nav-btn" data-view="resume"><span class="idx">06</span>简历</button>
+  </nav>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeBtn" title="夜间模式" aria-label="切换夜间模式">🌙</button>
+    <button class="edit-pill" id="editToggle"><span>✎</span> 编辑</button>
+  </div>
+</header>
+
+<main>
+  <!-- 主页 -->
+  <section id="view-home" class="view active">
+    <div class="container">
+      <div class="hero">
+        <div class="hero-deco deco-red"></div>
+        <div class="hero-deco deco-blue"></div>
+        <p class="hero-role reveal"><span class="bar"></span><span data-bind="role"></span></p>
+        <h1 class="hero-name reveal"><span data-bind="name"></span></h1>
+        <p class="hero-tagline reveal" data-bind="tagline"></p>
+        <div class="hero-contact reveal" id="heroSocial"></div>
+        <div class="hero-actions reveal">
+          <a class="btn btn-red" data-goto="projects">查看项目 →</a>
+          <a class="btn btn-ghost" data-goto="about">关于我</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 项目 -->
+  <section id="view-projects" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">Selected Works</div>
+        <h2 class="sec-title">项目 <em>Projects</em></h2>
+      </div>
+      <div class="list-actions reveal">
+        <button class="add-btn" data-add="projects">＋ 添加项目</button>
+      </div>
+      <div class="grid" id="projectList"></div>
+    </div>
+  </section>
+
+  <!-- 关于我 -->
+  <section id="view-about" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">About Me</div>
+        <h2 class="sec-title">关于我 <em>About</em></h2>
+      </div>
+      <div class="about-wrap">
+        <div class="reveal">
+          <p class="bio" data-bind="bio"></p>
+          <h3 class="mini-title">技能 Skills</h3>
+          <div class="skill-list" id="skillList"></div>
+          <h3 class="mini-title">兴趣爱好 Interests</h3>
+          <div class="skill-list" id="interestList"></div>
+        </div>
+        <aside class="aside-card reveal">
+          <h3>联系方式</h3>
+          <div class="hero-contact" id="aboutSocial"></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 阅读 -->
+  <section id="view-reading" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">Reading List</div>
+        <h2 class="sec-title">阅读 <em>Reading</em></h2>
+      </div>
+      <div class="list-actions reveal">
+        <button class="add-btn" data-add="reading">＋ 添加书籍</button>
+      </div>
+      <div class="list" id="readingList"></div>
+    </div>
+  </section>
+
+  <!-- 游戏 -->
+  <section id="view-games" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">Games I Play</div>
+        <h2 class="sec-title">游戏 <em>Games</em></h2>
+      </div>
+      <div class="list-actions reveal">
+        <button class="add-btn" data-add="games">＋ 添加游戏</button>
+      </div>
+      <div class="list" id="gameList"></div>
+    </div>
+  </section>
+
+  <!-- 简历 -->
+  <section id="view-resume" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">Resume</div>
+        <h2 class="sec-title">简历 <em>Resume</em></h2>
+      </div>
+      <div class="res-sec reveal">
+        <h3>个人简介 Summary</h3>
+        <p class="bio" data-bind="resume.summary"></p>
+      </div>
+      <div class="res-sec reveal">
+        <h3>实践与活动 Experience</h3>
+        <div class="list-actions">
+          <button class="add-btn" data-add="experience">＋ 添加经历</button>
+        </div>
+        <div class="timeline" id="expList"></div>
+      </div>
+      <div class="res-sec reveal">
+        <h3>教育背景 Education</h3>
+        <div class="list-actions">
+          <button class="add-btn" data-add="education">＋ 添加教育</button>
+        </div>
+        <div class="timeline" id="eduList"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-logo">DELTA<span class="logo-dot"></span></div>
+  <div>© 2026 Delta · 由 Delta 亲手打造</div>
+  <div class="foot-actions">
+    <button class="add-btn" id="resetBtn">重置为默认</button>
+  </div>
+</footer>
+
+<!-- 编辑工具条 -->
+<div class="edit-bar" id="editBar">
+  <span class="hint">编辑模式</span>
+  <button class="btn btn-blue" id="saveBtn" style="padding:10px 20px">保存</button>
+  <button class="btn btn-red" id="shareBtn" style="padding:10px 20px">生成分享链接</button>
+  <button class="btn btn-ghost" id="doneBtn" style="padding:10px 20px">完成</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ 默认数据 ============ */
+  const DEFAULT_DATA = {
+    name: "Delta",
+    role: "准大一新生 · 设计与前端学习者",
+    tagline: "用代码和画笔，把脑海里的想法一点点变成现实。",
+    bio: "你好，我是 Delta，一名刚刚结束高中、即将踏入大学校园的准大一新生。\n\n我对网页设计与前端开发充满兴趣，正在自学 HTML / CSS / JavaScript 和视觉设计，喜欢把脑海里的想法做成看得见的作品。\n\n这里记录了我的项目、读过的书、玩过的游戏，以及一份正在成长中的履历——一切才刚刚开始。",
+    contact: {
+      location: "中国",
+      methods: [
+        { kind: "email", value: "cuixiao2007@icloud.com" },
+        { kind: "phone", value: "15355423262" },
+        { kind: "wechat", value: "hnxcpc" }
+      ]
+    },
+    projects: [
+      { title: "个人主页", desc: "从零搭建的个人网站，支持夜间模式与在线编辑，是我前端学习路上的第一个完整作品。", tags: "HTML/CSS, JavaScript, 响应式", link: "https://example.com" },
+      { title: "待办清单小工具", desc: "用原生 JavaScript 写的待办事项应用，支持增删改与本地保存。", tags: "JavaScript, 交互设计", link: "https://example.com" },
+      { title: "校园活动海报", desc: "高中时期为班级与年级活动设计的系列海报和宣传物料。", tags: "平面设计, 排版", link: "https://example.com" },
+      { title: "随手拍 · 摄影集", desc: "用手机记录生活瞬间，整理成在线相册，持续更新中。", tags: "摄影, 生活记录", link: "https://example.com" }
+    ],
+    reading: [
+      { title: "黑客与画家", author: "Paul Graham", note: "让我明白编程本身也是一种创作。" },
+      { title: "设计中的设计", author: "原研哉", note: "关于留白与极简的启蒙。" },
+      { title: "Don't Make Me Think", author: "Steve Krug", note: "好用比好看更重要。" },
+      { title: "认知觉醒", author: "周岭", note: "关于学习与成长的方法论。" },
+      { title: "三体", author: "刘慈欣", note: "科幻入门，震撼的想象力。" }
+    ],
+    games: [
+      { title: "我的世界 Minecraft", platform: "PC", note: "创造力与建造的自由。" },
+      { title: "塞尔达传说：旷野之息", platform: "Switch", note: "开放世界与探索的乐趣。" },
+      { title: "原神", platform: "PC/移动", note: "美术与开放世界的结合。" },
+      { title: "星际拓荒 Outer Wilds", platform: "PC", note: "用知识驱动的叙事。" },
+      { title: "双人成行", platform: "PC", note: "和朋友一起通关的合作佳作。" }
+    ],
+    resume: {
+      summary: "热爱设计与前端开发的准大一新生。希望进入大学后系统学习计算机与设计，把兴趣变成扎实的专业能力，做出更多有影响力的作品。",
+      experience: [
+        { period: "2023 — 2026", role: "校学生会 · 宣传部成员", org: "高中", desc: "负责班级与年级活动的海报设计和公众号排版，锻炼了审美与排版能力。" },
+        { period: "2024 — 至今", role: "自学前端 · 个人项目", org: "课余时间", desc: "从零学习网页设计与开发，完成了个人主页、待办清单等多个练习作品。" }
+      ],
+      education: [
+        { period: "2023 — 2026", degree: "高中", org: "中学 · 已毕业" },
+        { period: "2026 — 未来", degree: "本科 · 专业待定", org: "大学 · 即将入学" }
+      ]
+    },
+    skills: "HTML/CSS, JavaScript, Figma, 摄影, 视频剪辑, 排版设计",
+    interests: "摄影, 篮球, 音乐, 动漫, 数码, 电影"
+  };
+
+  /* ============ 数据加载（URL 参数 > localStorage > 默认） ============ */
+  function encodeData(obj){
+    const json = JSON.stringify(obj);
+    const b64 = btoa(unescape(encodeURIComponent(json)));
+    return b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function decodeData(str){
+    let b64 = str.replace(/-/g,'+').replace(/_/g,'/');
+    while(b64.length % 4) b64 += '=';
+    const json = decodeURIComponent(escape(atob(b64)));
+    return JSON.parse(json);
+  }
+  function normalize(d){
+    if(!d || typeof d !== 'object') d = {};
+    const def = DEFAULT_DATA;
+    if(!d.contact || typeof d.contact !== 'object') d.contact = {};
+    if(!Array.isArray(d.contact.methods)){
+      // 旧版 contact.social → contact.methods 迁移
+      const social = Array.isArray(d.contact.social) ? d.contact.social : [];
+      d.contact.methods = social.length
+        ? social.map(s=>{
+            const lbl = String(s.label||'');
+            const kind = /mail|邮件/i.test(lbl) ? 'email' : (/phone|电话|tel/i.test(lbl) ? 'phone' : 'wechat');
+            return { kind: kind, value: s.value || s.url || '' };
+          })
+        : JSON.parse(JSON.stringify(def.contact.methods));
+    }
+    if(typeof d.contact.location !== 'string') d.contact.location = def.contact.location;
+    ['projects','reading','games'].forEach(k=>{ if(!Array.isArray(d[k])) d[k] = JSON.parse(JSON.stringify(def[k])); });
+    if(!d.resume || typeof d.resume !== 'object') d.resume = {};
+    if(!Array.isArray(d.resume.experience)) d.resume.experience = JSON.parse(JSON.stringify(def.resume.experience));
+    if(!Array.isArray(d.resume.education)) d.resume.education = JSON.parse(JSON.stringify(def.resume.education));
+    if(typeof d.resume.summary !== 'string') d.resume.summary = def.resume.summary;
+    return d;
+  }
+
+  function loadData(){
+    const params = new URLSearchParams(location.search);
+    const d = params.get('d');
+    if(d){
+      try{
+        const parsed = normalize(decodeData(d));
+        try{ localStorage.setItem('delta_data_v2', JSON.stringify(parsed)); }catch(e){}
+        history.replaceState(null, '', location.pathname); // 清理 URL
+        return parsed;
+      }catch(e){ /* 忽略损坏的链接 */ }
+    }
+    try{
+      const s = localStorage.getItem('delta_data_v2');
+      if(s) return normalize(JSON.parse(s));
+    }catch(e){}
+    return normalize(JSON.parse(JSON.stringify(DEFAULT_DATA)));
+  }
+
+  let data = loadData();
+
+  function getPath(obj, path){
+    return path.split('.').reduce((o,k)=>(o==null?undefined:o[k]), obj);
+  }
+  function setPath(obj, path, val){
+    const keys = path.split('.');
+    let cur = obj;
+    for(let i=0;i<keys.length-1;i++) cur = cur[keys[i]];
+    cur[keys[keys.length-1]] = val;
+  }
+  function esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ============ 音效（Web Audio，轻微点击） ============ */
+  let audioCtx = null;
+  function playClick(){
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1500, t);
+      osc.frequency.exponentialRampToValueAtTime(520, t + 0.08);
+      gain.gain.setValueAtTime(0.14, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t); osc.stop(t + 0.12);
+    }catch(e){}
+  }
+
+  /* ============ 渲染 ============ */
+  function renderAll(edit){
+    // 静态文本绑定
+    document.querySelectorAll('[data-bind]').forEach(el=>{
+      const val = getPath(data, el.dataset.bind);
+      el.textContent = val ?? '';
+    });
+    renderContact(edit);
+    renderTopContact();
+    renderSkills(edit);
+    renderInterests(edit);
+    renderProjects(edit);
+    renderReading(edit);
+    renderGames(edit);
+    renderExp(edit);
+    renderEdu(edit);
+    // 统一切换所有可编辑文本的 contenteditable（含静态字段与列表字段）
+    document.querySelectorAll('[data-bind]').forEach(el=>{ el.contentEditable = edit ? 'true' : 'false'; });
+    applyEditMode(edit);
+  }
+
+  const KIND_LABEL = { wechat:'微信', email:'邮件', phone:'电话' };
+  const KIND_ICO = { wechat:'💬', email:'✉️', phone:'📞' };
+
+  function renderContact(edit){
+    const html = (data.contact.methods || []).map((m,i)=>{
+      if(edit){
+        return '<span class="contact-chip" style="flex-direction:row;align-items:center;gap:8px;cursor:default">'
+          + '<select class="kind-select" data-kind="'+i+'">'
+          + ['wechat','email','phone'].map(k=>'<option value="'+k+'"'+(m.kind===k?' selected':'')+'>'+KIND_LABEL[k]+'</option>').join('')
+          + '</select>'
+          + '<span data-bind="contact.methods.'+i+'.value" contenteditable="true" style="font-weight:700;font-size:14px">'+esc(m.value)+'</span>'
+          + '<button class="rm-btn" data-rm="methods" data-i="'+i+'">×</button>'
+          + '</span>';
+      }
+      const val = esc(m.value);
+      const ico = KIND_ICO[m.kind] || '🔗';
+      const label = KIND_LABEL[m.kind] || '链接';
+      if(m.kind==='email') return '<a class="contact-chip" href="mailto:'+val+'"><span class="cc-label">'+ico+' '+label+'</span><span class="cc-value">'+val+'</span></a>';
+      if(m.kind==='phone') return '<a class="contact-chip" href="tel:'+val.replace(/[^\d+]/g,'')+'"><span class="cc-label">'+ico+' '+label+'</span><span class="cc-value">'+val+'</span></a>';
+      return '<button class="contact-chip" data-copy="'+val+'"><span class="cc-label">'+ico+' '+label+'</span><span class="cc-value">'+val+'</span></button>';
+    }).join('');
+    ['heroSocial','aboutSocial'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = html;
+    });
+    if(edit){
+      const wrap = document.getElementById('heroSocial');
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-btn'; addBtn.textContent = '＋ 添加联系方式'; addBtn.setAttribute('data-add','methods');
+      wrap.appendChild(addBtn);
+    }
+  }
+
+  function renderTopContact(){
+    const el = document.getElementById('topSocial');
+    el.innerHTML = (data.contact.methods || []).map(m=>{
+      const val = esc(m.value);
+      if(m.kind==='email') return '<a href="mailto:'+val+'">邮件</a>';
+      if(m.kind==='phone') return '<a href="tel:'+val.replace(/[^\d+]/g,'')+'">电话</a>';
+      return '<button data-copy="'+val+'">微信</button>';
+    }).join('');
+  }
+
+  function renderSkills(edit){
+    const el = document.getElementById('skillList');
+    const arr = String(data.skills || '').split(/[,，、]/).map(s=>s.trim()).filter(Boolean);
+    if(edit){
+      el.innerHTML = '<span class="skill" style="border-color:var(--blue);color:var(--blue)" data-bind="skills" contenteditable="true">'+esc(data.skills)+'</span>'
+        + '<span class="skill" style="opacity:.6;font-size:11px">↑ 技能以逗号分隔，直接编辑</span>';
+    }else{
+      el.innerHTML = arr.map(s=>'<span class="skill">'+esc(s)+'</span>').join('');
+    }
+  }
+
+  function renderInterests(edit){
+    const el = document.getElementById('interestList');
+    const arr = String(data.interests || '').split(/[,，、]/).map(s=>s.trim()).filter(Boolean);
+    if(edit){
+      el.innerHTML = '<span class="skill" style="border-color:var(--red);color:var(--red)" data-bind="interests" contenteditable="true">'+esc(data.interests)+'</span>'
+        + '<span class="skill" style="opacity:.6;font-size:11px">↑ 兴趣以逗号分隔，直接编辑</span>';
+    }else{
+      el.innerHTML = arr.map(s=>'<span class="skill">'+esc(s)+'</span>').join('');
+    }
+  }
+
+  function renderProjects(edit){
+    const el = document.getElementById('projectList');
+    el.innerHTML = data.projects.map((p,i)=>{
+      const tags = String(p.tags||'').split(/[,，、]/).map(t=>t.trim()).filter(Boolean);
+      const tagHtml = tags.map((t,ti)=>'<span class="tag '+(ti%2===0?'red':'blue')+'">'+esc(t)+'</span>').join('');
+      const linkHtml = edit
+        ? '<span class="project-link"><span class="arr">↗</span> <span data-bind="projects.'+i+'.link" contenteditable="true">'+esc(p.link)+'</span></span>'
+        : (p.link ? '<a class="project-link" href="'+esc(p.link)+'" target="_blank" rel="noopener">访问项目 <span class="arr">↗</span></a>' : '');
+      return '<article class="project-card">'
+        + (edit ? '<button class="rm-btn" data-rm="projects" data-i="'+i+'" style="position:absolute;top:12px;right:14px">×</button>' : '')
+        + '<div class="project-index">' + String(i+1).padStart(2,'0') + '</div>'
+        + '<h3 class="project-title" data-bind="projects.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(p.title)+'</h3>'
+        + '<p class="project-desc" data-bind="projects.'+i+'.desc" contenteditable="'+(edit?'true':'false')+'">'+esc(p.desc)+'</p>'
+        + (edit ? '<p class="project-desc" style="font-family:var(--font-mono);font-size:12px;color:var(--ink-soft)">标签（逗号分隔）：<span data-bind="projects.'+i+'.tags" contenteditable="true">'+esc(p.tags)+'</span></p>' : '<div class="project-tags">'+tagHtml+'</div>')
+        + linkHtml
+        + '</article>';
+    }).join('');
+  }
+
+  function renderReading(edit){
+    const el = document.getElementById('readingList');
+    el.innerHTML = data.reading.map((r,i)=>{
+      return '<div class="item">'
+        + (edit ? '<button class="rm-btn" data-rm="reading" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
+        + '<div class="body">'
+        + '<div class="t" data-bind="reading.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(r.title)+'</div>'
+        + '<div class="sub">作者：<span data-bind="reading.'+i+'.author" contenteditable="'+(edit?'true':'false')+'">'+esc(r.author)+'</span></div>'
+        + '<div class="note" data-bind="reading.'+i+'.note" contenteditable="'+(edit?'true':'false')+'">'+esc(r.note)+'</div>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  function renderGames(edit){
+    const el = document.getElementById('gameList');
+    el.innerHTML = data.games.map((g,i)=>{
+      return '<div class="item">'
+        + (edit ? '<button class="rm-btn" data-rm="games" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
+        + '<div class="body">'
+        + '<div class="t" data-bind="games.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(g.title)+'</div>'
+        + '<div class="note" data-bind="games.'+i+'.note" contenteditable="'+(edit?'true':'false')+'">'+esc(g.note)+'</div>'
+        + '</div>'
+        + '<span class="meta" data-bind="games.'+i+'.platform" contenteditable="'+(edit?'true':'false')+'">'+esc(g.platform)+'</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function timelineItem(t, i, prefix, edit){
+    return '<div class="tl-item">'
+      + (edit ? '<button class="rm-btn" data-rm="'+prefix+'" data-i="'+i+'" style="position:absolute;right:0;top:0">×</button>' : '')
+      + '<div class="tl-period" data-bind="'+prefix+'.'+i+'.period" contenteditable="'+(edit?'true':'false')+'">'+esc(t.period)+'</div>'
+      + '<div class="tl-role" data-bind="'+prefix+'.'+i+'.role" contenteditable="'+(edit?'true':'false')+'">'+esc(t.role)+'</div>'
+      + '<div class="tl-org" data-bind="'+prefix+'.'+i+'.org" contenteditable="'+(edit?'true':'false')+'">'+esc(t.org)+'</div>'
+      + '<div class="tl-desc" data-bind="'+prefix+'.'+i+'.desc" contenteditable="'+(edit?'true':'false')+'">'+esc(t.desc)+'</div>'
+      + '</div>';
+  }
+  function renderExp(edit){
+    document.getElementById('expList').innerHTML = data.resume.experience.map((t,i)=>timelineItem(t,i,'resume.experience',edit)).join('');
+  }
+  function renderEdu(edit){
+    document.getElementById('eduList').innerHTML = data.resume.education.map((t,i)=>{
+      return '<div class="tl-item">'
+        + (edit ? '<button class="rm-btn" data-rm="education" data-i="'+i+'" style="position:absolute;right:0;top:0">×</button>' : '')
+        + '<div class="tl-period" data-bind="resume.education.'+i+'.period" contenteditable="'+(edit?'true':'false')+'">'+esc(t.period)+'</div>'
+        + '<div class="tl-role" data-bind="resume.education.'+i+'.degree" contenteditable="'+(edit?'true':'false')+'">'+esc(t.degree)+'</div>'
+        + '<div class="tl-org" data-bind="resume.education.'+i+'.org" contenteditable="'+(edit?'true':'false')+'">'+esc(t.org)+'</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  /* ============ 编辑模式 ============ */
+  let editing = false;
+  function applyEditMode(edit){
+    editing = !!edit;
+    document.body.classList.toggle('edit-mode', editing);
+    document.getElementById('editBar').classList.toggle('show', editing);
+    const pill = document.getElementById('editToggle');
+    pill.innerHTML = editing ? '<span>✕</span> 退出编辑' : '<span>✎</span> 编辑';
+  }
+  function setEdit(on){
+    applyEditMode(on);
+    renderAll(on); // 重渲染以切换 contenteditable / 链接形态
+  }
+
+  /* ============ 收集编辑内容 ============ */
+  function collectEdits(){
+    document.querySelectorAll('[data-bind][contenteditable="true"]').forEach(el=>{
+      const path = el.dataset.bind;
+      const val = el.innerText.trim();
+      // 跳过空数组索引路径（未填内容时保留原值）
+      setPath(data, path, val);
+    });
+  }
+
+  /* ============ 保存 / 分享 / 重置 ============ */
+  function save(){
+    collectEdits();
+    try{ localStorage.setItem('delta_data_v2', JSON.stringify(data)); }catch(e){}
+    renderAll(editing);
+    toast('已保存 ✓');
+  }
+  function share(){
+    collectEdits();
+    try{ localStorage.setItem('delta_data_v2', JSON.stringify(data)); }catch(e){}
+    const url = location.origin + location.pathname + '?d=' + encodeData(data);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(()=>toast('分享链接已复制到剪贴板 ✓'), ()=>fallbackShare(url));
+    }else{
+      fallbackShare(url);
+    }
+  }
+  function fallbackShare(url){
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('分享链接已复制 ✓'); }catch(e){ toast('链接：' + url); }
+    document.body.removeChild(ta);
+  }
+  function reset(){
+    if(!confirm('确定要重置为默认内容吗？当前编辑将丢失。')) return;
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    try{ localStorage.removeItem('delta_data_v2'); }catch(e){}
+    renderAll(editing);
+    toast('已重置为默认内容');
+  }
+
+  /* ============ Toast ============ */
+  let toastTimer = null;
+  function toast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove('show'), 2200);
+  }
+
+  /* ============ 视图切换 ============ */
+  function switchView(view){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    const target = document.getElementById('view-'+view);
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  /* ============ 主题切换 ============ */
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('themeBtn').textContent = theme==='dark' ? '☀️' : '🌙';
+  }
+  function toggleTheme(){
+    const cur = document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+    applyTheme(cur);
+    try{ localStorage.setItem('delta_theme', cur); }catch(e){}
+    playClick();
+  }
+
+  /* ============ 事件绑定 ============ */
+  document.addEventListener('click', function(e){
+    // 复制（微信等）
+    const copy = e.target.closest('[data-copy]');
+    if(copy){
+      playClick();
+      const val = copy.dataset.copy;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(val).then(()=>toast('已复制：'+val), ()=>{});
+      }else{
+        const ta = document.createElement('textarea');
+        ta.value = val; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(err){}
+        document.body.removeChild(ta);
+        toast('已复制：'+val);
+      }
+      return;
+    }
+    // 导航按钮
+    const navBtn = e.target.closest('.nav-btn');
+    if(navBtn){
+      playClick();
+      switchView(navBtn.dataset.view);
+      return;
+    }
+    // 视图跳转按钮（data-goto）
+    const goto = e.target.closest('[data-goto]');
+    if(goto){
+      playClick();
+      switchView(goto.dataset.goto);
+      return;
+    }
+    // 删除按钮
+    const rm = e.target.closest('[data-rm]');
+    if(rm){
+      playClick();
+      const key = rm.dataset.rm, i = +rm.dataset.i;
+      if(key==='methods') data.contact.methods.splice(i,1);
+      else data[key].splice(i,1);
+      save();
+      return;
+    }
+    // 添加按钮
+    const add = e.target.closest('[data-add]');
+    if(add){
+      playClick();
+      const key = add.dataset.add;
+      const blank = {
+        methods: {kind:'wechat', value:'新微信号'},
+        projects: {title:'新项目', desc:'项目描述', tags:'标签1, 标签2', link:'https://'},
+        reading: {title:'书名', author:'作者', note:'读后感'},
+        games: {title:'游戏名', platform:'平台', note:'点评'},
+        experience: {period:'2026 — 至今', role:'职位', org:'公司', desc:'工作内容'},
+        education: {period:'年份', degree:'学位', org:'学校'}
+      }[key];
+      if(key==='methods') data.contact.methods.push(blank);
+      else if(key==='experience') data.resume.experience.push(blank);
+      else if(key==='education') data.resume.education.push(blank);
+      else data[key].push(blank);
+      save();
+      return;
+    }
+    // 主题切换
+    if(e.target.closest('#themeBtn')){ toggleTheme(); return; }
+    // 编辑开关
+    if(e.target.closest('#editToggle')){
+      playClick();
+      setEdit(!editing);
+      return;
+    }
+    // 保存 / 分享 / 完成 / 重置
+    if(e.target.closest('#saveBtn')){ save(); return; }
+    if(e.target.closest('#shareBtn')){ share(); return; }
+    if(e.target.closest('#doneBtn')){ save(); setEdit(false); return; }
+    if(e.target.closest('#resetBtn')){ reset(); return; }
+  });
+
+  /* ============ 开场动画 ============ */
+  const name = data.name || 'Delta';
+  const loaderWord = document.getElementById('loaderWord');
+  const chars = name.split('');
+  loaderWord.innerHTML = chars.map((c,i)=>{
+    return '<span style="animation-delay:'+(0.25+i*0.09)+'s">'+esc(c)+'</span>';
+  }).join('');
+
+  const LOADER_MS = 4000;
+  setTimeout(function(){
+    document.getElementById('loader').classList.add('done');
+    document.body.classList.add('loaded');
+    setTimeout(()=>{ document.getElementById('loader').style.display='none'; }, 800);
+  }, LOADER_MS);
+
+  /* ============ 初始化 ============ */
+  (function init(){
+    applyTheme(localStorage.getItem('delta_theme') || 'light');
+    renderAll(false);
+  })();
+})();
+</script>
+</body>
+</html>
