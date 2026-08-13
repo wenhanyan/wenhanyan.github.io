@@ -141,8 +141,8 @@ main{min-height:70vh}
 /* ============ Hero（主页） ============ */
 .hero{position:relative;min-height:calc(100vh - 220px);display:flex;flex-direction:column;justify-content:center}
 .hero-deco{position:absolute;z-index:-1}
-.deco-red{width:clamp(140px,24vw,300px);height:clamp(140px,24vw,300px);background:var(--red);border-radius:50%;top:4%;right:2%;opacity:.9;filter:saturate(1.2)}
-.deco-blue{width:clamp(70px,12vw,140px);height:clamp(70px,12vw,140px);background:var(--blue);bottom:8%;left:4%;transform:rotate(12deg)}
+.deco-red{width:clamp(140px,24vw,300px);height:clamp(140px,24vw,300px);background:var(--red);border-radius:50%;top:4%;right:2%;opacity:.9;filter:saturate(1.2);transition:translate .35s ease}
+.deco-blue{width:clamp(70px,12vw,140px);height:clamp(70px,12vw,140px);background:var(--blue);bottom:8%;left:4%;transform:rotate(12deg);transition:translate .35s ease}
 [data-theme="dark"] .deco-red{opacity:.55}
 [data-theme="dark"] .deco-blue{opacity:.55}
 .hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.22em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:22px}
@@ -1074,7 +1074,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       : '<span class="cover-letter">'+esc(String(r.title||'书').charAt(0))+'</span>';
     const html =
       '<div class="cover">'+cover+'</div>'
-      + (editing ? '<label class="field-label">封面图片链接<input id="coverUrl" type="text" value="'+esc(r.cover||'')+'" placeholder="粘贴图片 URL（可留空）"></label>' : '')
+      + (editing ? '<label class="field-label">封面图片链接<input id="coverUrl" type="text" value="'+esc(r.cover||'')+'" placeholder="粘贴图片 URL（可留空）"></label>'
+        + '<button type="button" class="btn btn-ghost" data-upload="book" style="width:100%;justify-content:center;padding:10px 16px;margin-bottom:4px">📁 上传本地图片</button>' : '')
       + '<div class="detail-title">'+esc(r.title)+'</div>'
       + '<div class="detail-sub">'+esc(r.author||'')+'</div>'
       + '<div class="detail-row"><span class="detail-label">状态</span>'+statusPills(r.status||'已读', ['想读','在读','已读'])+'</div>'
@@ -1098,6 +1099,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       '<div class="cover">'+cover+'</div>'
       + (editing
           ? '<label class="field-label">封面图片链接<input id="gameCover" type="text" value="'+esc(g.cover||'')+'" placeholder="粘贴图片 URL，或用下方自动匹配"></label>'
+            + '<button type="button" class="btn btn-ghost" data-upload="game" style="width:100%;justify-content:center;padding:10px 16px;margin-bottom:8px">📁 上传本地图片</button>'
             + '<button class="btn btn-ghost" id="gameAutoCover" style="width:100%;justify-content:center;padding:11px 16px">🖼 按名称自动匹配图片</button>'
           : '')
       + '<div class="detail-title">'+esc(g.title)+'</div>'
@@ -1183,7 +1185,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       + '<div class="resume-head-name">'+esc(data.name)+'</div>'
       + '<div class="resume-head-role">'+esc(data.role)+'</div>'
       + '<div class="r-chips">'+chips+'</div>'
-      + (edit ? '<label class="field-label" style="margin-top:12px">照片图片链接<input id="resumePhoto" type="text" value="'+esc(r.photo||'')+'" placeholder="粘贴照片 URL（可留空）"></label>' : '')
+      + (edit ? '<label class="field-label" style="margin-top:12px">照片图片链接<input id="resumePhoto" type="text" value="'+esc(r.photo||'')+'" placeholder="粘贴照片 URL（可留空）"></label>'
+        + '<button type="button" class="btn btn-ghost" data-upload="resume" style="width:100%;justify-content:center;padding:10px 16px;margin-top:8px">📁 上传本地照片</button>' : '')
       + '</div>';
   }
 
@@ -1248,6 +1251,25 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       view.classList.remove('closing');
       switchView('home');
     }, 820);
+  }
+
+  /* ============ 视差（小范围跟随光标） ============ */
+  function initParallax(){
+    const hero = document.querySelector('.hero');
+    if(!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const red = hero.querySelector('.deco-red');
+    const blue = hero.querySelector('.deco-blue');
+    hero.addEventListener('mousemove', function(e){
+      const rect = hero.getBoundingClientRect();
+      const x = (e.clientX - rect.left)/rect.width - .5;
+      const y = (e.clientY - rect.top)/rect.height - .5;
+      if(red) red.style.translate = (x*9)+'px '+(y*9)+'px';
+      if(blue) blue.style.translate = (x*-11)+'px '+(y*-11)+'px';
+    });
+    hero.addEventListener('mouseleave', function(){
+      if(red) red.style.translate = '0px 0px';
+      if(blue) blue.style.translate = '0px 0px';
+    });
   }
 
   /* ============ 自定义光标 ============ */
@@ -1380,6 +1402,40 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     playClick();
   }
 
+  /* ============ 本地图片上传（读取并压缩为 dataURL） ============ */
+  function readImageFile(file, cb){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const max = 800;
+        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        if(w > max || h > max){
+          const r = Math.min(max/w, max/h);
+          w = Math.round(w*r); h = Math.round(h*r);
+        }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = function(){ cb(null); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function(){ cb(null); };
+    reader.readAsDataURL(file);
+  }
+  function pickLocalImage(cb){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(){
+      const f = input.files && input.files[0];
+      if(f){ readImageFile(f, cb); }
+    };
+    input.click();
+  }
+
   /* ============ 事件绑定 ============ */
   document.addEventListener('click', function(e){
     // 复制（微信等）
@@ -1396,6 +1452,30 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         document.body.removeChild(ta);
         toast('已复制：'+val);
       }
+      return;
+    }
+    // 本地图片上传
+    const up = e.target.closest('[data-upload]');
+    if(up){
+      playClick();
+      const kind = up.dataset.upload;
+      pickLocalImage(function(dataUrl){
+        if(!dataUrl){ toast('图片读取失败，请重试'); return; }
+        if(kind === 'resume'){
+          data.resume.photo = dataUrl;
+          const inp = document.getElementById('resumePhoto'); if(inp) inp.value = dataUrl;
+          const av = document.querySelector('#resumeHead .avatar'); if(av) av.innerHTML = '<img src="'+esc(dataUrl)+'" alt="照片">';
+        }else if(kind === 'book' && detail && detail.kind === 'book'){
+          data.reading[detail.i].cover = dataUrl;
+          const inp = document.getElementById('coverUrl'); if(inp) inp.value = dataUrl;
+          const cv = document.querySelector('#bookDetail .cover'); if(cv) cv.innerHTML = '<img src="'+esc(dataUrl)+'" alt="封面">';
+        }else if(kind === 'game' && detail && detail.kind === 'game'){
+          data.games[detail.i].cover = dataUrl;
+          const inp = document.getElementById('gameCover'); if(inp) inp.value = dataUrl;
+          const cv = document.querySelector('#gameDetail .cover'); if(cv) cv.innerHTML = '<img src="'+esc(dataUrl)+'" alt="封面">';
+        }
+        toast('已上传图片（记得点「完成」保存）');
+      });
       return;
     }
     // 导航按钮
@@ -1591,6 +1671,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     autoFillGameCovers();
     updateAuthUI();
     initCursor();
+    initParallax();
     pushMsg('你好呀！我是 '+(data.name||'Delta')+' 的 AI 助手 🤖 有什么想了解的吗？', 'ai');
   })();
 })();
