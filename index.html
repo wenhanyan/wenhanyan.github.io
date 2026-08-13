@@ -406,7 +406,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 <div id="loader" aria-hidden="true">
   <div class="loader-word" id="loaderWord"></div>
   <div class="loader-line"></div>
-  <div class="loader-tag">DELTA · PORTFOLIO</div>
+  <div class="loader-tag" id="loaderTag">DELTA · PORTFOLIO</div>
 </div>
 
 <!-- 顶部联系条 -->
@@ -419,7 +419,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 
 <!-- 导航栏 -->
 <header class="navbar">
-  <a class="logo" data-goto="home"><span class="mark">DELTA</span><span class="logo-dot"></span></a>
+  <a class="logo" data-goto="home"><span class="mark" id="logoMark">DELTA</span><span class="logo-dot"></span></a>
   <nav class="nav">
     <button class="nav-btn active" data-view="home"><span class="idx">01</span>主页</button>
     <button class="nav-btn" data-view="projects"><span class="idx">02</span>项目</button>
@@ -575,8 +575,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 </main>
 
 <footer>
-  <div class="foot-logo">DELTA<span class="logo-dot"></span></div>
-  <div>© 2026 Delta · 由 Delta 亲手打造</div>
+  <div class="foot-logo"><span id="footLogoText">DELTA</span><span class="logo-dot"></span></div>
+  <div id="footCopy">© 2026 Delta · 由 Delta 亲手打造</div>
   <div class="foot-actions">
     <button class="add-btn" id="resetBtn">重置为默认</button>
   </div>
@@ -873,12 +873,23 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   }
 
   /* ============ 渲染 ============ */
+  function syncBrand(){
+    const nm = data.name || 'Delta';
+    const up = String(nm).toUpperCase();
+    document.title = nm + ' — 个人网站';
+    const mark = document.getElementById('logoMark'); if(mark) mark.textContent = up;
+    const tag = document.getElementById('loaderTag'); if(tag) tag.textContent = up + ' · PORTFOLIO';
+    const ft = document.getElementById('footLogoText'); if(ft) ft.textContent = up;
+    const cp = document.getElementById('footCopy'); if(cp) cp.textContent = '© 2026 ' + nm + ' · 由 ' + nm + ' 亲手打造';
+    const ci = document.getElementById('chatInput'); if(ci) ci.placeholder = '问我关于 ' + nm + ' 的问题…';
+  }
   function renderAll(edit){
     // 静态文本绑定
     document.querySelectorAll('[data-bind]').forEach(el=>{
       const val = getPath(data, el.dataset.bind);
       el.textContent = val ?? '';
     });
+    syncBrand();
     renderContact(edit);
     renderTopContact();
     renderSkills(edit);
@@ -1552,12 +1563,17 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   });
 
   /* ============ 开场动画 ============ */
-  const name = data.name || 'Delta';
-  const loaderWord = document.getElementById('loaderWord');
-  const chars = name.split('');
-  loaderWord.innerHTML = chars.map((c,i)=>{
-    return '<span style="animation-delay:'+(0.25+i*0.09)+'s">'+esc(c)+'</span>';
-  }).join('');
+  function setupLoader(){
+    const nm = data.name || 'Delta';
+    const loaderWord = document.getElementById('loaderWord');
+    if(loaderWord){
+      loaderWord.innerHTML = nm.split('').map((c,i)=>{
+        return '<span style="animation-delay:'+(0.25+i*0.09)+'s">'+esc(c)+'</span>';
+      }).join('');
+    }
+    syncBrand();
+  }
+  setupLoader();
 
   const LOADER_MS = 4000;
   setTimeout(function(){
@@ -1571,6 +1587,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     applyTheme(localStorage.getItem('delta_theme') || 'light');
     data = await loadDataAsync();
     renderAll(false);
+    setupLoader();
     autoFillGameCovers();
     updateAuthUI();
     initCursor();
