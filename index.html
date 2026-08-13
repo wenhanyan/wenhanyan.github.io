@@ -281,6 +281,110 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:300}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ============ 主页 3D 球体与动态背景 ============ */
+.hero-bg{position:absolute;inset:0;z-index:-2;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;animation:blobMove 20s ease-in-out infinite}
+.blob-1{width:44vw;height:44vw;background:radial-gradient(circle,var(--red),transparent 70%);top:-12%;left:-10%}
+.blob-2{width:38vw;height:38vw;background:radial-gradient(circle,var(--blue),transparent 70%);bottom:-14%;right:-8%;animation-delay:-10s}
+@keyframes blobMove{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(6%,8%) scale(1.12)}66%{transform:translate(-5%,-6%) scale(.94)}}
+.deco-red{
+  background:radial-gradient(circle at 32% 26%, #ff8585 0%, var(--red) 42%, #8f0000 100%);
+  box-shadow:inset -34px -34px 70px rgba(0,0,0,.38), inset 22px 22px 55px rgba(255,255,255,.22), 0 46px 100px -32px rgba(255,31,31,.6);
+  animation:floatRed 6s ease-in-out infinite;
+}
+.deco-red::after{content:"";position:absolute;top:16%;left:20%;width:30%;height:20%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9),rgba(255,255,255,0));filter:blur(3px)}
+.deco-red::before{content:"";position:absolute;inset:-20%;border-radius:50%;border:2px dashed rgba(255,255,255,.32);animation:spin 24s linear infinite}
+.deco-blue{
+  background:radial-gradient(circle at 30% 25%, #8ba6ff 0%, var(--blue) 45%, #00156b 100%);
+  box-shadow:inset -20px -20px 45px rgba(0,0,0,.4), inset 14px 14px 34px rgba(255,255,255,.22);
+  animation:floatBlue 7s ease-in-out infinite;
+}
+@keyframes floatRed{0%,100%{transform:translateY(0)}50%{transform:translateY(-26px)}}
+@keyframes floatBlue{0%,100%{transform:translateY(0) rotate(12deg)}50%{transform:translateY(-18px) rotate(12deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============ 关于我 动效 ============ */
+.skill{transition:transform .2s,color .2s,border-color .2s;animation:chipIn .45s ease backwards}
+.skill:hover{transform:translateY(-3px) scale(1.06)}
+.skill:nth-child(2){animation-delay:.05s}.skill:nth-child(3){animation-delay:.1s}
+.skill:nth-child(4){animation-delay:.15s}.skill:nth-child(5){animation-delay:.2s}
+.skill:nth-child(6){animation-delay:.25s}.skill:nth-child(7){animation-delay:.3s}
+@keyframes chipIn{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
+.aside-card{transition:transform .3s,box-shadow .3s}
+.aside-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+
+/* ============ 列表缩略图 / 星级 / 状态 / 进度 ============ */
+.item[data-open-book],.item[data-open-game]{align-items:center;cursor:pointer}
+.thumb{width:48px;height:66px;border-radius:8px;overflow:hidden;flex:none;background:linear-gradient(135deg,var(--red),var(--blue));display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;box-shadow:0 6px 14px -6px rgba(0,0,0,.35)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.stars{display:inline-flex;gap:1px;font-size:18px;line-height:1}
+.stars .star{background:none;border:none;cursor:pointer;color:var(--line);font-size:inherit;padding:0 1px;transition:transform .12s,color .12s}
+.stars .star.on{color:#ffb400}
+.stars:not(.readonly) .star:hover{transform:scale(1.25)}
+.stars.readonly .star{cursor:default}
+.status-pills{display:inline-flex;gap:7px;flex-wrap:wrap}
+.status-pill{font-size:12px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);cursor:pointer;background:none;font-family:inherit;transition:.2s;white-space:nowrap}
+.status-pill[data-status]:hover{border-color:var(--blue);color:var(--blue)}
+.status-pill.on{color:#fff;background:var(--blue);border-color:var(--blue)}
+.status-pill.read{cursor:default;color:var(--blue);border-color:var(--blue)}
+.progress{height:8px;border-radius:99px;background:var(--bg-soft);overflow:hidden;border:1px solid var(--line);min-width:80px}
+.progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--blue));transition:width .3s}
+.comp-val{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);min-width:40px;text-align:right}
+
+/* ============ 详情抽屉（书籍/游戏） ============ */
+.sheet{position:fixed;inset:0;z-index:350;display:flex;justify-content:flex-end;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.sheet.show{opacity:1;visibility:visible}
+.sheet-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.sheet-panel{position:relative;width:min(94vw,440px);height:100%;background:var(--bg);border-left:1px solid var(--line);padding:26px;overflow-y:auto;transform:translateX(102%);transition:transform .34s cubic-bezier(.2,.8,.2,1)}
+.sheet.show .sheet-panel{transform:translateX(0)}
+.sheet-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;cursor:pointer;display:grid;place-items:center;transition:.2s;z-index:2}
+.sheet-close:hover{color:var(--red);transform:rotate(90deg)}
+.cover{width:100%;aspect-ratio:3/4;max-height:340px;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,var(--red),var(--blue));display:grid;place-items:center;box-shadow:var(--shadow);margin-bottom:4px}
+.cover img{width:100%;height:100%;object-fit:cover}
+.cover-letter{font-size:64px;font-weight:900;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.3)}
+.detail-title{font-size:24px;font-weight:900;margin:18px 0 4px}
+.detail-sub{font-size:14px;color:var(--ink-soft);margin-bottom:18px}
+.detail-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.detail-label{font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);min-width:44px;letter-spacing:.06em}
+.detail-note{font-size:14px;color:var(--ink-soft);line-height:1.8;margin-top:6px;white-space:pre-wrap}
+.sheet-done{margin-top:18px;width:100%;justify-content:center}
+.field-label{display:block;font-size:12px;font-family:var(--font-mono);color:var(--ink-soft);margin:14px 0 6px;letter-spacing:.04em}
+.field-label input,.field-label textarea{display:block;width:100%;margin-top:6px;padding:10px 13px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
+.field-label textarea{resize:vertical;line-height:1.6}
+.field-label input:focus,.field-label textarea:focus{outline:none;border-color:var(--blue)}
+.field-label input[type=range]{padding:0}
+
+/* ============ 简历头部 ============ */
+.resume-head{display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding:26px;border:1px solid var(--line);border-radius:18px;background:var(--card);margin-bottom:26px}
+.avatar{width:110px;height:110px;border-radius:50%;overflow:hidden;flex:none;background:linear-gradient(135deg,var(--red),var(--blue));display:grid;place-items:center;color:#fff;box-shadow:var(--shadow)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-letter{font-size:46px;font-weight:900}
+.resume-head-main{flex:1;min-width:220px}
+.resume-head-name{font-size:26px;font-weight:900;letter-spacing:-.02em}
+.resume-head-role{font-size:14px;color:var(--ink-soft);margin:2px 0 10px}
+.r-chips{display:flex;flex-wrap:wrap;gap:8px}
+.r-chip{font-family:var(--font-mono);font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);background:var(--bg-soft);transition:.2s;cursor:pointer}
+.r-chip:hover{color:var(--blue);border-color:var(--blue)}
+
+/* ============ AI 助手 ============ */
+.chat{display:flex;flex-direction:column;height:min(72vh,620px);max-width:760px;margin:0 auto;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--card)}
+.chat-log{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:78%;padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start;background:var(--bg-soft);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.typing{opacity:.55}
+.chat-quick{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px 4px}
+.chat-input{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--line)}
+.chat-input input{flex:1;padding:12px 16px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
+.chat-input input:focus{outline:none;border-color:var(--blue)}
+
+/* ============ 页面关闭动画 ============ */
+.close-page-btn{position:fixed;top:80px;right:20px;z-index:210;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--red);font-size:22px;cursor:pointer;display:none;place-items:center;box-shadow:var(--shadow);transition:transform .25s}
+.edit-mode .close-page-btn{display:grid}
+.close-page-btn:hover{transform:rotate(90deg) scale(1.1)}
+.view.closing{animation:pageClose .45s cubic-bezier(.5,0,.8,.4) forwards}
+@keyframes pageClose{to{opacity:0;transform:scale(.9) translateY(26px);filter:blur(8px)}}
+
 /* ============ 响应式 ============ */
 @media(max-width:760px){
   .navbar{flex-wrap:wrap;gap:10px}
@@ -321,6 +425,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     <button class="nav-btn" data-view="reading"><span class="idx">04</span>阅读</button>
     <button class="nav-btn" data-view="games"><span class="idx">05</span>游戏</button>
     <button class="nav-btn" data-view="resume"><span class="idx">06</span>简历</button>
+    <button class="nav-btn" data-view="ai"><span class="idx">07</span>AI助手</button>
   </nav>
   <div class="nav-right">
     <button class="edit-pill" id="authBtn" title="登录后可同步内容到云端（全网可见）">🔒 登录</button>
@@ -334,6 +439,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   <section id="view-home" class="view active">
     <div class="container">
       <div class="hero">
+        <div class="hero-bg"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
         <div class="hero-deco deco-red"></div>
         <div class="hero-deco deco-blue"></div>
         <p class="hero-role reveal"><span class="bar"></span><span data-bind="role"></span></p>
@@ -420,6 +526,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         <div class="eyebrow">Resume</div>
         <h2 class="sec-title">简历 <em>Resume</em></h2>
       </div>
+      <div class="resume-head reveal" id="resumeHead"></div>
       <div class="res-sec reveal">
         <h3>个人简介 Summary</h3>
         <p class="bio" data-bind="resume.summary"></p>
@@ -440,6 +547,30 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       </div>
     </div>
   </section>
+
+  <!-- AI助手 -->
+  <section id="view-ai" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">AI Assistant</div>
+        <h2 class="sec-title">AI助手 <em>Assistant</em></h2>
+      </div>
+      <div class="chat reveal">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-quick">
+          <button class="status-pill" data-ask="你的联系方式？">📱 联系方式</button>
+          <button class="status-pill" data-ask="介绍一下你的项目">💼 项目</button>
+          <button class="status-pill" data-ask="你会什么技能？">🛠 技能</button>
+          <button class="status-pill" data-ask="最近在读什么书？">📚 阅读</button>
+          <button class="status-pill" data-ask="玩过什么游戏？">🎮 游戏</button>
+        </div>
+        <div class="chat-input">
+          <input id="chatInput" type="text" placeholder="问我关于 Delta 的问题…" autocomplete="off">
+          <button class="btn btn-blue" id="chatSend" style="padding:11px 22px">发送</button>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -456,6 +587,27 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   <button class="btn btn-blue" id="saveBtn" style="padding:10px 20px">保存</button>
   <button class="btn btn-red" id="shareBtn" style="padding:10px 20px">生成分享链接</button>
   <button class="btn btn-ghost" id="doneBtn" style="padding:10px 20px">完成</button>
+</div>
+
+<!-- 关闭页面按钮（编辑态） -->
+<button class="close-page-btn" id="closePageBtn" title="关闭本页">×</button>
+
+<!-- 书籍详情 -->
+<div class="sheet" id="bookSheet">
+  <div class="sheet-backdrop" data-close-sheet></div>
+  <div class="sheet-panel">
+    <button class="sheet-close" data-close-sheet>×</button>
+    <div id="bookDetail"></div>
+  </div>
+</div>
+
+<!-- 游戏详情 -->
+<div class="sheet" id="gameSheet">
+  <div class="sheet-backdrop" data-close-sheet></div>
+  <div class="sheet-panel">
+    <button class="sheet-close" data-close-sheet>×</button>
+    <div id="gameDetail"></div>
+  </div>
 </div>
 
 <!-- 登录弹窗 -->
@@ -513,20 +665,21 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       { title: "随手拍 · 摄影集", desc: "用手机记录生活瞬间，整理成在线相册，持续更新中。", tags: "摄影, 生活记录", link: "https://example.com" }
     ],
     reading: [
-      { title: "黑客与画家", author: "Paul Graham", note: "让我明白编程本身也是一种创作。" },
-      { title: "设计中的设计", author: "原研哉", note: "关于留白与极简的启蒙。" },
-      { title: "Don't Make Me Think", author: "Steve Krug", note: "好用比好看更重要。" },
-      { title: "认知觉醒", author: "周岭", note: "关于学习与成长的方法论。" },
-      { title: "三体", author: "刘慈欣", note: "科幻入门，震撼的想象力。" }
+      { title: "黑客与画家", author: "Paul Graham", note: "让我明白编程本身也是一种创作。", rating: 5, review: "编程即创作，程序员也是创造者。", status: "已读", cover: "" },
+      { title: "设计中的设计", author: "原研哉", note: "关于留白与极简的启蒙。", rating: 5, review: "留白是一种克制的力量。", status: "已读", cover: "" },
+      { title: "Don't Make Me Think", author: "Steve Krug", note: "好用比好看更重要。", rating: 4, review: "可用性优先的经典。", status: "已读", cover: "" },
+      { title: "认知觉醒", author: "周岭", note: "关于学习与成长的方法论。", rating: 4, review: "重新认识学习这件事。", status: "在读", cover: "" },
+      { title: "三体", author: "刘慈欣", note: "科幻入门，震撼的想象力。", rating: 5, review: "宏大的宇宙叙事。", status: "已读", cover: "" }
     ],
     games: [
-      { title: "我的世界 Minecraft", platform: "PC", note: "创造力与建造的自由。" },
-      { title: "塞尔达传说：旷野之息", platform: "Switch", note: "开放世界与探索的乐趣。" },
-      { title: "原神", platform: "PC/移动", note: "美术与开放世界的结合。" },
-      { title: "星际拓荒 Outer Wilds", platform: "PC", note: "用知识驱动的叙事。" },
-      { title: "双人成行", platform: "PC", note: "和朋友一起通关的合作佳作。" }
+      { title: "我的世界 Minecraft", platform: "PC", note: "创造力与建造的自由。", rating: 5, completion: 100, review: "无限的创造可能。", status: "已通关", hours: "500+" },
+      { title: "塞尔达传说：旷野之息", platform: "Switch", note: "开放世界与探索的乐趣。", rating: 5, completion: 90, review: "开放世界的标杆。", status: "进行中", hours: "120" },
+      { title: "原神", platform: "PC/移动", note: "美术与开放世界的结合。", rating: 4, completion: 60, review: "美术很顶，日常略肝。", status: "进行中", hours: "300+" },
+      { title: "星际拓荒 Outer Wilds", platform: "PC", note: "用知识驱动的叙事。", rating: 5, completion: 100, review: "知识就是进度。", status: "已通关", hours: "25" },
+      { title: "双人成行", platform: "PC", note: "和朋友一起通关的合作佳作。", rating: 5, completion: 100, review: "合作游戏的巅峰。", status: "已通关", hours: "15" }
     ],
     resume: {
+      photo: "",
       summary: "热爱设计与前端开发的准大一新生。希望进入大学后系统学习计算机与设计，把兴趣变成扎实的专业能力，做出更多有影响力的作品。",
       experience: [
         { period: "2023 — 2026", role: "校学生会 · 宣传部成员", org: "高中", desc: "负责班级与年级活动的海报设计和公众号排版，锻炼了审美与排版能力。" },
@@ -574,6 +727,9 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(!Array.isArray(d.resume.experience)) d.resume.experience = JSON.parse(JSON.stringify(def.resume.experience));
     if(!Array.isArray(d.resume.education)) d.resume.education = JSON.parse(JSON.stringify(def.resume.education));
     if(typeof d.resume.summary !== 'string') d.resume.summary = def.resume.summary;
+    if(typeof d.resume.photo !== 'string') d.resume.photo = def.resume.photo || '';
+    (d.reading||[]).forEach(r=>{ if(!r||typeof r!=='object') return; if(typeof r.rating!=='number') r.rating=0; if(typeof r.review!=='string') r.review=''; if(typeof r.cover!=='string') r.cover=''; if(typeof r.status!=='string') r.status='已读'; });
+    (d.games||[]).forEach(g=>{ if(!g||typeof g!=='object') return; if(typeof g.rating!=='number') g.rating=0; if(typeof g.completion!=='number') g.completion=100; if(typeof g.review!=='string') g.review=''; if(typeof g.status!=='string') g.status='已通关'; if(typeof g.hours!=='string') g.hours=''; });
     return d;
   }
 
@@ -727,6 +883,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     renderGames(edit);
     renderExp(edit);
     renderEdu(edit);
+    renderResumeHead(edit);
     // 统一切换所有可编辑文本的 contenteditable（含静态字段与列表字段）
     document.querySelectorAll('[data-bind]').forEach(el=>{ el.contentEditable = edit ? 'true' : 'false'; });
     applyEditMode(edit);
@@ -819,26 +976,34 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   function renderReading(edit){
     const el = document.getElementById('readingList');
     el.innerHTML = data.reading.map((r,i)=>{
-      return '<div class="item">'
+      const cover = r.cover
+        ? '<span class="thumb"><img src="'+esc(r.cover)+'" alt=""></span>'
+        : '<span class="thumb">'+esc(String(r.title||'书').charAt(0))+'</span>';
+      return '<div class="item" data-open-book="'+i+'">'
         + (edit ? '<button class="rm-btn" data-rm="reading" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
+        + cover
         + '<div class="body">'
         + '<div class="t" data-bind="reading.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(r.title)+'</div>'
         + '<div class="sub">作者：<span data-bind="reading.'+i+'.author" contenteditable="'+(edit?'true':'false')+'">'+esc(r.author)+'</span></div>'
         + '<div class="note" data-bind="reading.'+i+'.note" contenteditable="'+(edit?'true':'false')+'">'+esc(r.note)+'</div>'
-        + '</div></div>';
+        + '</div>'
+        + '<div class="meta"><div class="stars readonly">'+starsUI(r.rating||0)+'</div><span class="status-pill read">'+esc(r.status||'已读')+'</span></div>'
+        + '</div>';
     }).join('');
   }
 
   function renderGames(edit){
     const el = document.getElementById('gameList');
     el.innerHTML = data.games.map((g,i)=>{
-      return '<div class="item">'
+      const comp = Math.max(0, Math.min(100, g.completion||0));
+      return '<div class="item" data-open-game="'+i+'">'
         + (edit ? '<button class="rm-btn" data-rm="games" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
         + '<div class="body">'
         + '<div class="t" data-bind="games.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(g.title)+'</div>'
+        + '<div class="sub">平台：<span data-bind="games.'+i+'.platform" contenteditable="'+(edit?'true':'false')+'">'+esc(g.platform)+'</span>'+(g.hours?' · '+esc(g.hours)+' 小时':'')+'</div>'
         + '<div class="note" data-bind="games.'+i+'.note" contenteditable="'+(edit?'true':'false')+'">'+esc(g.note)+'</div>'
         + '</div>'
-        + '<span class="meta" data-bind="games.'+i+'.platform" contenteditable="'+(edit?'true':'false')+'">'+esc(g.platform)+'</span>'
+        + '<div class="meta" style="text-align:right"><div class="stars readonly">'+starsUI(g.rating||0)+'</div><div class="progress" style="margin-top:6px"><i style="width:'+comp+'%"></i></div><span class="status-pill read">'+esc(g.status||'已通关')+'</span></div>'
         + '</div>';
     }).join('');
   }
@@ -864,6 +1029,170 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         + '<div class="tl-org" data-bind="resume.education.'+i+'.org" contenteditable="'+(edit?'true':'false')+'">'+esc(t.org)+'</div>'
         + '</div>';
     }).join('');
+  }
+
+  /* ============ 星级 / 状态 / 详情 ============ */
+  let detail = null; // {kind:'book'|'game', i:index}
+
+  function starsUI(rating){
+    let s = '';
+    for(let v=1; v<=5; v++){
+      s += '<button class="star'+(v<=rating?' on':'')+'" data-v="'+v+'">★</button>';
+    }
+    return s;
+  }
+  function statusPills(cur, opts){
+    if(!editing) return '<span class="status-pill read">'+esc(cur)+'</span>';
+    return '<div class="status-pills">' + opts.map(o=>'<button class="status-pill'+(cur===o?' on':'')+'" data-status="'+o+'">'+o+'</button>').join('') + '</div>';
+  }
+  function openBookDetail(i){
+    const r = data.reading[i];
+    if(!r) return;
+    detail = { kind:'book', i:i };
+    const cover = r.cover
+      ? '<img src="'+esc(r.cover)+'" alt="封面">'
+      : '<span class="cover-letter">'+esc(String(r.title||'书').charAt(0))+'</span>';
+    const html =
+      '<div class="cover">'+cover+'</div>'
+      + (editing ? '<label class="field-label">封面图片链接<input id="coverUrl" type="text" value="'+esc(r.cover||'')+'" placeholder="粘贴图片 URL（可留空）"></label>' : '')
+      + '<div class="detail-title">'+esc(r.title)+'</div>'
+      + '<div class="detail-sub">'+esc(r.author||'')+'</div>'
+      + '<div class="detail-row"><span class="detail-label">状态</span>'+statusPills(r.status||'已读', ['想读','在读','已读'])+'</div>'
+      + '<div class="detail-row"><span class="detail-label">评分</span><div class="stars'+(editing?'':' readonly')+'">'+starsUI(r.rating||0)+'</div></div>'
+      + (editing
+          ? '<label class="field-label">评语<textarea id="bookReview" rows="5" placeholder="写下你对这本书的想法…">'+esc(r.review||'')+'</textarea></label>'
+          : '<div class="detail-note">'+esc(r.review||'（暂无评语）')+'</div>')
+      + (editing ? '<button class="btn btn-blue sheet-done" data-close-sheet>完成</button>' : '');
+    document.getElementById('bookDetail').innerHTML = html;
+    document.getElementById('bookSheet').classList.add('show');
+  }
+  function openGameDetail(i){
+    const g = data.games[i];
+    if(!g) return;
+    detail = { kind:'game', i:i };
+    const comp = Math.max(0, Math.min(100, g.completion||0));
+    const html =
+      '<div class="detail-title">'+esc(g.title)+'</div>'
+      + '<div class="detail-sub">'+esc(g.platform||'')+(g.hours?' · '+esc(g.hours)+' 小时':'')+'</div>'
+      + '<div class="detail-row"><span class="detail-label">状态</span>'+statusPills(g.status||'已通关', ['未开始','进行中','已通关','弃坑'])+'</div>'
+      + '<div class="detail-row"><span class="detail-label">评分</span><div class="stars'+(editing?'':' readonly')+'">'+starsUI(g.rating||0)+'</div></div>'
+      + '<div class="detail-row"><span class="detail-label">完成度</span><div class="progress" style="flex:1"><i style="width:'+comp+'%"></i></div><span class="comp-val" id="gameCompleteVal">'+comp+'%</span></div>'
+      + (editing
+          ? '<label class="field-label">完成度<input id="gameComplete" type="range" min="0" max="100" value="'+comp+'"></label>'
+            + '<label class="field-label">游玩时长（小时）<input id="gameHours" type="text" value="'+esc(g.hours||'')+'" placeholder="如 120"></label>'
+            + '<label class="field-label">点评<textarea id="gameReview" rows="5" placeholder="对这个游戏的评价…">'+esc(g.review||'')+'</textarea></label>'
+            + '<button class="btn btn-blue sheet-done" data-close-sheet>完成</button>'
+          : '<div class="detail-note">'+esc(g.review||'（暂无点评）')+'</div>');
+    document.getElementById('gameDetail').innerHTML = html;
+    document.getElementById('gameSheet').classList.add('show');
+  }
+  function closeSheet(){
+    document.getElementById('bookSheet').classList.remove('show');
+    document.getElementById('gameSheet').classList.remove('show');
+    detail = null;
+    save();
+  }
+
+  /* ============ 简历头部 ============ */
+  function renderResumeHead(edit){
+    const el = document.getElementById('resumeHead');
+    if(!el) return;
+    const r = data.resume || {};
+    const photo = r.photo
+      ? '<img src="'+esc(r.photo)+'" alt="照片">'
+      : '<span class="avatar-letter">'+esc((data.name||'D').charAt(0))+'</span>';
+    const chips = (data.contact.methods||[]).map(m=>{
+      const val = esc(m.value);
+      if(m.kind==='email') return '<a class="r-chip" href="mailto:'+val+'">✉️ '+val+'</a>';
+      if(m.kind==='phone') return '<a class="r-chip" href="tel:'+val.replace(/[^\d+]/g,'')+'">📞 '+val+'</a>';
+      return '<span class="r-chip" data-copy="'+val+'">💬 '+val+'</span>';
+    }).join('');
+    el.innerHTML =
+      '<div class="avatar">'+photo+'</div>'
+      + '<div class="resume-head-main">'
+      + '<div class="resume-head-name">'+esc(data.name)+'</div>'
+      + '<div class="resume-head-role">'+esc(data.role)+'</div>'
+      + '<div class="r-chips">'+chips+'</div>'
+      + (edit ? '<label class="field-label" style="margin-top:12px">照片图片链接<input id="resumePhoto" type="text" value="'+esc(r.photo||'')+'" placeholder="粘贴照片 URL（可留空）"></label>' : '')
+      + '</div>';
+  }
+
+  /* ============ AI 助手 ============ */
+  function contactValue(kind){
+    const m = (data.contact && data.contact.methods || []).find(function(x){ return x.kind===kind; });
+    return m ? m.value : '（未填写）';
+  }
+  function aiReply(q){
+    q = String(q||'').toLowerCase();
+    function has(){ for(let i=0;i<arguments.length;i++){ if(q.indexOf(arguments[i])>=0) return true; } return false; }
+    const nm = data.name || 'Delta';
+    if(has('你好','hi','hello','嗨','在吗','hey')) return '你好呀！我是 '+nm+' 的 AI 助手 🤖\n可以问我：联系方式、项目、技能、阅读、游戏、简历等～';
+    if(has('谁','名字','name','介绍','你是谁')) return '我是 '+nm+'，'+(data.role||'')+'。\n'+(data.tagline||'');
+    if(has('邮箱','email','邮件','mail')) return '📧 邮箱：'+contactValue('email');
+    if(has('微信','wechat','weixin','vx')) return '💬 微信：'+contactValue('wechat');
+    if(has('电话','手机','phone','tel','号码')) return '📞 电话：'+contactValue('phone');
+    if(has('联系','contact','怎么找','怎么联系')) return '联系方式：\n邮箱 '+contactValue('email')+'\n微信 '+contactValue('wechat')+'\n电话 '+contactValue('phone');
+    if(has('项目','project','作品','portfolio','做了')) return '💼 我的项目：\n'+(data.projects||[]).map(function(p,i){ return (i+1)+'. '+p.title; }).join('\n');
+    if(has('技能','skill','会什么','技术','精通')) return '🛠 我掌握的技能：'+(data.skills||'');
+    if(has('兴趣','爱好','hobby','喜欢','爱')) return '🎯 我的兴趣：'+(data.interests||'');
+    if(has('读','书','book','reading','阅读','在看')) return '📚 阅读书单：\n'+(data.reading||[]).map(function(r){ return '《'+r.title+'》('+(r.status||'已读')+')'; }).join('\n');
+    if(has('游戏','game','玩','打')) return '🎮 我玩过的游戏：\n'+(data.games||[]).map(function(g){ return g.title; }).join('\n');
+    if(has('简历','resume','经历','教育','学校','大学','高中')) return '📄 简历：'+(data.resume&&data.resume.summary||'');
+    if(has('谢谢','thanks','thank','3q','感谢')) return '不客气～ 还有什么想了解的吗？';
+    if(has('帮助','help','会什么','功能','能干什么','指令')) return '我可以回答关于 '+nm+' 的问题，例如：\n📱 联系方式 / 💼 项目 / 🛠 技能 / 📚 阅读 / 🎮 游戏 / 📄 简历';
+    return '这个问题我还没学会 😅\n试试问我「联系方式」「项目」「技能」「阅读」「游戏」或「简历」吧～';
+  }
+  function pushMsg(text, who){
+    const log = document.getElementById('chatLog');
+    if(!log) return null;
+    const d = document.createElement('div');
+    d.className = 'msg ' + who;
+    d.textContent = text;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  function sendChat(){
+    const input = document.getElementById('chatInput');
+    const text = (input.value||'').trim();
+    if(!text) return;
+    input.value = '';
+    playClick();
+    pushMsg(text, 'user');
+    const typing = pushMsg('正在思考…', 'ai');
+    if(typing) typing.classList.add('typing');
+    setTimeout(function(){
+      if(typing) typing.remove();
+      pushMsg(aiReply(text), 'ai');
+    }, 600 + Math.random()*500);
+  }
+
+  /* ============ 页面关闭动画 ============ */
+  function closePage(){
+    const view = document.querySelector('.view.active');
+    if(!view) return;
+    playClick();
+    view.classList.add('closing');
+    save();
+    setTimeout(function(){
+      view.classList.remove('closing');
+      switchView('home');
+    }, 450);
+  }
+
+  /* ============ 视差 ============ */
+  function initParallax(){
+    const hero = document.querySelector('.hero');
+    if(!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    hero.addEventListener('mousemove', function(e){
+      const rect = hero.getBoundingClientRect();
+      const x = (e.clientX - rect.left)/rect.width - .5;
+      const y = (e.clientY - rect.top)/rect.height - .5;
+      const red = hero.querySelector('.deco-red');
+      const blue = hero.querySelector('.deco-blue');
+      if(red) red.style.translate = (x*28)+'px '+(y*28)+'px';
+      if(blue) blue.style.translate = (x*-36)+'px '+(y*-36)+'px';
+    });
   }
 
   /* ============ 编辑模式 ============ */
@@ -922,7 +1251,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   }
   function reset(){
     if(!confirm('确定要重置为默认内容吗？当前编辑将丢失。')) return;
-    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    data = normalize(JSON.parse(JSON.stringify(DEFAULT_DATA)));
     try{ localStorage.removeItem('delta_data_v2'); }catch(e){}
     renderAll(editing);
     toast('已重置为默认内容');
@@ -1009,8 +1338,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       const blank = {
         methods: {kind:'wechat', value:'新微信号'},
         projects: {title:'新项目', desc:'项目描述', tags:'标签1, 标签2', link:'https://'},
-        reading: {title:'书名', author:'作者', note:'读后感'},
-        games: {title:'游戏名', platform:'平台', note:'点评'},
+        reading: {title:'书名', author:'作者', note:'读后感', rating:0, review:'', cover:'', status:'想读'},
+        games: {title:'游戏名', platform:'平台', note:'点评', rating:0, completion:0, review:'', status:'未开始', hours:''},
         experience: {period:'2026 — 至今', role:'职位', org:'公司', desc:'工作内容'},
         education: {period:'年份', degree:'学位', org:'学校'}
       }[key];
@@ -1034,6 +1363,50 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(e.target.closest('#shareBtn')){ share(); return; }
     if(e.target.closest('#doneBtn')){ save(); setEdit(false); return; }
     if(e.target.closest('#resetBtn')){ reset(); return; }
+    // 关闭详情抽屉（背景 / × / 完成）
+    if(e.target.closest('[data-close-sheet]')){ closeSheet(); return; }
+    // 打开书籍详情
+    const openBook = e.target.closest('[data-open-book]');
+    if(openBook){
+      if(!e.target.closest('[contenteditable="true"]') && !e.target.closest('[data-rm]')){
+        playClick(); openBookDetail(+openBook.dataset.openBook);
+      }
+      return;
+    }
+    // 打开游戏详情
+    const openGame = e.target.closest('[data-open-game]');
+    if(openGame){
+      if(!e.target.closest('[contenteditable="true"]') && !e.target.closest('[data-rm]')){
+        playClick(); openGameDetail(+openGame.dataset.openGame);
+      }
+      return;
+    }
+    // 星级评分（编辑态详情内）
+    const star = e.target.closest('.star[data-v]');
+    if(star && detail && !star.closest('.stars.readonly')){
+      const v = +star.dataset.v;
+      const obj = detail.kind==='book' ? data.reading[detail.i] : data.games[detail.i];
+      obj.rating = v;
+      star.closest('.stars').querySelectorAll('.star').forEach(function(b){ b.classList.toggle('on', +b.dataset.v<=v); });
+      playClick();
+      return;
+    }
+    // 状态切换（编辑态详情内）
+    const sp = e.target.closest('.status-pill[data-status]');
+    if(sp && detail){
+      const val = sp.dataset.status;
+      const obj = detail.kind==='book' ? data.reading[detail.i] : data.games[detail.i];
+      obj.status = val;
+      sp.closest('.status-pills').querySelectorAll('.status-pill').forEach(function(p){ p.classList.toggle('on', p.dataset.status===val); });
+      playClick();
+      return;
+    }
+    // 关闭本页（编辑态右上角 ×）
+    if(e.target.closest('#closePageBtn')){ closePage(); return; }
+    // AI 助手
+    if(e.target.closest('#chatSend')){ sendChat(); return; }
+    const ask = e.target.closest('[data-ask]');
+    if(ask){ const ci = document.getElementById('chatInput'); if(ci) ci.value = ask.dataset.ask; sendChat(); return; }
     // 登录弹窗相关
     if(e.target.closest('#authBtn')){
       playClick();
@@ -1053,6 +1426,26 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       if(e.key === 'Enter'){ e.preventDefault(); doLogin(); }
       else if(e.key === 'Escape'){ closeAuth(); }
     }
+  });
+  // 详情页表单 / 简历照片：即时写入数据
+  document.addEventListener('input', function(e){
+    const t = e.target;
+    if(t.id === 'resumePhoto'){ data.resume.photo = t.value; return; }
+    if(!detail) return;
+    if(t.id === 'coverUrl'){ data.reading[detail.i].cover = t.value; }
+    else if(t.id === 'bookReview'){ data.reading[detail.i].review = t.value; }
+    else if(t.id === 'gameReview'){ data.games[detail.i].review = t.value; }
+    else if(t.id === 'gameHours'){ data.games[detail.i].hours = t.value; }
+    else if(t.id === 'gameComplete'){
+      const v = Math.max(0, Math.min(100, +t.value || 0));
+      data.games[detail.i].completion = v;
+      const val = document.getElementById('gameCompleteVal'); if(val) val.textContent = v + '%';
+      const bar = document.querySelector('#gameDetail .progress i'); if(bar) bar.style.width = v + '%';
+    }
+  });
+  // 聊天框回车发送
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && e.target && e.target.id === 'chatInput'){ sendChat(); }
   });
 
   /* ============ 开场动画 ============ */
@@ -1076,6 +1469,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     data = await loadDataAsync();
     renderAll(false);
     updateAuthUI();
+    initParallax();
+    pushMsg('你好呀！我是 '+(data.name||'Delta')+' 的 AI 助手 🤖 有什么想了解的吗？', 'ai');
   })();
 })();
 </script>
