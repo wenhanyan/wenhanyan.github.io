@@ -843,12 +843,14 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       document.getElementById('authPass').value = '';
       closeAuth();
       await updateAuthUI();
-      toast('登录成功 ✓ 现在「保存」即可同步全网');
+      if(wantEdit){ wantEdit = false; setEdit(true); toast('登录成功 ✓ 已进入编辑模式'); }
+      else { toast('登录成功 ✓ 现在「保存」即可同步全网'); }
     }catch(err){ setAuthErr('登录失败：' + (err.message || err)); }
     finally{ btn.disabled = false; btn.textContent = '登录'; }
   }
   async function doLogout(){
     if(sb){ try{ await sb.auth.signOut(); }catch(e){} }
+    if(editing){ setEdit(false); } // 退出登录后强制退出编辑态
     await updateAuthUI();
     toast('已退出登录');
   }
@@ -1302,6 +1304,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 
   /* ============ 编辑模式 ============ */
   let editing = false;
+  let wantEdit = false; // 是否因点击「编辑」触发的登录，登录成功后自动进入编辑态
   function applyEditMode(edit){
     editing = !!edit;
     document.body.classList.toggle('edit-mode', editing);
@@ -1542,10 +1545,13 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     }
     // 主题切换
     if(e.target.closest('#themeBtn')){ toggleTheme(); return; }
-    // 编辑开关
+    // 编辑开关（仅登录后可编辑）
     if(e.target.closest('#editToggle')){
       playClick();
-      setEdit(!editing);
+      currentSession().then(function(sess){
+        if(sess){ setEdit(!editing); }
+        else{ wantEdit = true; toast('请先登录后才能编辑'); openAuth(); }
+      });
       return;
     }
     // 保存 / 分享 / 完成 / 重置
@@ -1618,7 +1624,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(e.target.closest('#authBtn')){
       playClick();
       const st = e.target.closest('#authBtn').dataset.state;
-      if(st === 'in') doLogout(); else openAuth();
+      if(st === 'in') doLogout(); else { wantEdit = false; openAuth(); }
       return;
     }
     if(e.target.closest('#authLoginBtn')){ doLogin(); return; }
