@@ -1239,21 +1239,6 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     }, 820);
   }
 
-  /* ============ 视差 ============ */
-  function initParallax(){
-    const hero = document.querySelector('.hero');
-    if(!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    hero.addEventListener('mousemove', function(e){
-      const rect = hero.getBoundingClientRect();
-      const x = (e.clientX - rect.left)/rect.width - .5;
-      const y = (e.clientY - rect.top)/rect.height - .5;
-      const red = hero.querySelector('.deco-red');
-      const blue = hero.querySelector('.deco-blue');
-      if(red) red.style.translate = (x*28)+'px '+(y*28)+'px';
-      if(blue) blue.style.translate = (x*-36)+'px '+(y*-36)+'px';
-    });
-  }
-
   /* ============ 自定义光标 ============ */
   function initCursor(){
     if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
@@ -1589,7 +1574,6 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     autoFillGameCovers();
     updateAuthUI();
     initCursor();
-    initParallax();
     pushMsg('你好呀！我是 '+(data.name||'Delta')+' 的 AI 助手 🤖 有什么想了解的吗？', 'ai');
   })();
 })();
