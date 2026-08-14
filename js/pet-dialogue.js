@@ -1,40 +1,51 @@
-/* Live2D 桌宠 · 互动台词（独立配置 + 随机气泡）。依赖：PetState。 */
+/* Live2D 桌宠 · 台词（意图 + 情绪选词 → 气泡）。依赖：PetState、PetProfile、PetPersonality。 */
 window.PetDialogue = (function(){
   if(!window.PetState){
     console.error('[PetDialogue] 依赖未加载：PetState');
   }
+  if(!window.PetProfile){
+    console.error('[PetDialogue] 依赖未加载：PetProfile');
+  }
+  if(!window.PetPersonality){
+    console.error('[PetDialogue] 依赖未加载：PetPersonality');
+  }
 
-  /* 互动台词配置（独立配置，不硬编码在主逻辑里） */
-  const config = {
-    lines: [                     // 点击时随机取一条
-      '你好呀，我是 Delta 的桌宠～',
-      '今天也要元气满满哦！',
-      '要不要去看看阅读书单呀？',
-      '我在右下角，按住可以拖动我～',
-      '有什么想聊的吗？',
-      '加油加油，你最棒！'
-    ],
-    motion: 'tap',               // 预留扩展字段：未来库支持按名播放动作时使用；当前点击走模型自带 tap 动作
-    duration: 3000               // 气泡显示时长（毫秒）
-  };
-
+  const DURATION = 3000;   // 气泡显示时长（毫秒）
   let talkTimer = null;
 
-  /* 点击互动：随机台词 → 气泡（TALKING），时长结束自动消失并回到 IDLE；tap 动作由库自动播放 */
-  function sayRandom(){
+  /* 意图 + 当前情绪选词：
+     - 平铺数组（welcome）→ 直接随机
+     - 情绪分层对象（click/idleTalk）→ 按 PetState.getEmotion() 取，缺省回退 CALM */
+  function pickLine(intent){
+    const group = window.PetPersonality.lines[intent];
+    if(!group) return null;
+    let pool;
+    if(Array.isArray(group)){
+      pool = group;
+    } else {
+      const emotion = window.PetState.getEmotion();
+      pool = group[emotion] || group[window.PetEmotionType.CALM];
+    }
+    if(!pool || !pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  /* 说话：台词 → 气泡（INTERACTION → TALKING），时长结束自动消失并回到 IDLE */
+  function say(intent){
     const pet = window.PetState.getPet();
     if(!pet) return;
-    const line = config.lines[Math.floor(Math.random() * config.lines.length)];
+    const line = pickLine(intent);
+    if(!line) return;
     window.PetState.setActivity(window.PetActivity.INTERACTION);
-    pet.tipsMessage(line, config.duration);
+    pet.tipsMessage(line, DURATION);
     window.PetState.setActivity(window.PetActivity.TALKING);
     if(talkTimer) clearTimeout(talkTimer);
     talkTimer = setTimeout(function(){
       pet.clearTips();
       window.PetState.setActivity(window.PetActivity.IDLE);
       talkTimer = null;
-    }, config.duration);
+    }, DURATION);
   }
 
-  return { config, sayRandom };
+  return { say };
 })();

@@ -18,6 +18,10 @@
     if(!window.OML2D) return; // CDN 加载失败时静默跳过，不影响网站其余功能
     window.PetState.setPet(OML2D.loadOml2d({
       dockedPosition: 'right', // 默认是 left（会跑到左下角），这里改成右下角
+      // 底部菜单：过滤掉"关于"按钮（默认会 window.open("https://oml2d.com") 跳外站），保留休息/切换衣服/切换模型
+      menus: {
+        items: (defaults) => defaults.filter((item) => item.id !== 'About')
+      },
       models: [
         {
           path: 'https://model.hacxy.cn/HK416-1-normal/model.json',

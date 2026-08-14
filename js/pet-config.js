@@ -6,7 +6,7 @@ window.PetActivity = Object.freeze({
   DRAGGING: 'DRAGGING'
 });
 
-window.PetEmotion = Object.freeze({
+window.PetEmotionType = Object.freeze({
   CALM: 'CALM',
   HAPPY: 'HAPPY',
   CURIOUS: 'CURIOUS',
@@ -24,8 +24,8 @@ window.PetConfig = Object.freeze({
     talkCooldownMaxMs: 300000,   // 搭话最大冷却
     restAfterMs: 180000          // 无操作多久进入休息
   },
-  emotion: {                     // 阶段2 情绪使用（本阶段只定义不消费）
-    default: PetEmotion.CALM,
+  emotion: {                     // 阶段2 情绪使用
+    default: PetEmotionType.CALM,
     sleepyAfterMs: 180000        // 无互动多久变 SLEEPY
   }
 });

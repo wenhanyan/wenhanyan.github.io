@@ -1,7 +1,10 @@
-/* Live2D 桌宠 · 拖动 + 点击检测（4px 阈值区分）。依赖：PetState、PetDialogue。 */
+/* Live2D 桌宠 · 拖动 + 点击检测（4px 阈值区分）。依赖：PetState、PetEmotion、PetDialogue。 */
 window.PetDrag = (function(){
   if(!window.PetState){
     console.error('[PetDrag] 依赖未加载：PetState');
+  }
+  if(!window.PetEmotion){
+    console.error('[PetDrag] 依赖未加载：PetEmotion');
   }
   if(!window.PetDialogue){
     console.error('[PetDrag] 依赖未加载：PetDialogue');
@@ -34,7 +37,10 @@ window.PetDrag = (function(){
       s.style.bottom = 'auto';
     });
     function endDrag(){
-      if(drag && !drag.moved) window.PetDialogue.sayRandom(); // 未超过阈值 = 点击互动
+      if(drag && !drag.moved){ // 未超过阈值 = 点击互动：先更新情绪，再按新情绪选台词
+        window.PetEmotion.onInteraction();
+        window.PetDialogue.say('click');
+      }
       drag = null;
       if(window.PetState.getActivity() === window.PetActivity.DRAGGING) window.PetState.setActivity(window.PetActivity.IDLE); // 拖动结束 → 恢复待机
     }
