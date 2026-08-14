@@ -82,6 +82,50 @@
   filter: saturate(0.5) brightness(0.96);
 }
 
+/* ---- 状态徽章（关系等级 + 情绪，随桌宠移动，点击切换心情）---- */
+#pet-status {
+  position: absolute;                  /* 相对 #oml2d-stage 定位，随桌宠一起拖动 */
+  top: 120px;                          /* 下移至与角色脖子齐平（模型顶部约 y=60，脖子约 y=120） */
+  right: 0;
+  z-index: 999;                        /* 压过模型 canvas，确保徽章不被主体遮挡 */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--card, #ffffff);
+  background: color-mix(in srgb, var(--card, #ffffff) 90%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--blue, #1b4dff);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink, #0b0b0c);
+  pointer-events: auto;                /* 可点击切换心情 */
+  cursor: pointer;
+  user-select: none;
+}
+#pet-status .pet-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+#pet-status .pet-status-label {
+  color: color-mix(in srgb, var(--ink, #0b0b0c) 55%, transparent);
+}
+#pet-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue, #1b4dff);   /* CALM 默认蓝 */
+  flex: none;
+}
+#pet-status.pet-status-emotion-happy .dot { background: var(--red, #ff1f1f); }
+#pet-status.pet-status-emotion-curious .dot { background: #f59e0b; }
+#pet-status.pet-status-emotion-sleepy .dot { background: #9ca3af; }
+
 /* ---- 移动端适配 ---- */
 @media (max-width: 768px) {
   #oml2d-menus {
@@ -93,5 +137,9 @@
     width: 36px;
     height: 36px;
     border-radius: 9px;
+  }
+  #pet-status {
+    padding: 5px 8px;
+    font-size: 11px;
   }
 }
