@@ -1031,7 +1031,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         ? '<span class="thumb"><img src="'+esc(r.cover)+'" alt=""></span>'
         : '<span class="thumb">'+esc(String(r.title||'书').charAt(0))+'</span>';
       return '<div class="item" data-open-book="'+i+'">'
-        + (edit ? '<button class="rm-btn" data-rm="reading" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
+        + (edit ? '<div class="mv-wrap"><button class="mv-btn" data-move="reading" data-i="'+i+'" data-dir="-1" '+(i===0?'disabled':'')+' title="上移">↑</button><button class="mv-btn" data-move="reading" data-i="'+i+'" data-dir="1" '+(i===data.reading.length-1?'disabled':'')+' title="下移">↓</button><button class="rm-btn" data-rm="reading" data-i="'+i+'" title="删除">×</button></div>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
         + cover
         + '<div class="body">'
         + '<div class="t" data-bind="reading.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(r.title)+'</div>'
