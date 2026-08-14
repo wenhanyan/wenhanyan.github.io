@@ -1,11 +1,22 @@
-/* Live2D 桌宠 · 共享状态中枢（pet 实例 + 当前状态）。无依赖，必须最先加载。 */
+/* Live2D 桌宠 · 共享状态中枢（pet 实例 + 交互活动 + 情绪）。依赖：PetConfig 的枚举。 */
 window.PetState = (function(){
-  let pet = null;          // oh-my-live2d 实例（loadOml2d 返回值）
-  let state = 'IDLE';      // IDLE / TALKING / INTERACTION / DRAGGING
+  if(!window.PetActivity || !window.PetEmotion){
+    console.error('[PetState] 依赖未加载：PetActivity / PetEmotion');
+  }
+
+  let pet = null;                          // oh-my-live2d 实例（loadOml2d 返回值）
+  let activity = window.PetActivity.IDLE;  // 交互活动：IDLE / TALKING / INTERACTION / DRAGGING
+  let emotion = window.PetEmotion.CALM;    // 情绪：CALM / HAPPY / CURIOUS / SLEEPY
+  let lastActivity = Date.now();           // 最近一次用户互动时间戳（阶段3行为用）
+
   return {
     getPet(){ return pet; },
     setPet(p){ pet = p; },
-    getState(){ return state; },
-    setState(s){ state = s; }
+    getActivity(){ return activity; },
+    setActivity(a){ activity = a; },
+    getEmotion(){ return emotion; },
+    setEmotion(e){ emotion = e; },
+    touch(){ lastActivity = Date.now(); },
+    getLastActivity(){ return lastActivity; }
   };
 })();

@@ -25,13 +25,13 @@ window.PetDialogue = (function(){
     const pet = window.PetState.getPet();
     if(!pet) return;
     const line = config.lines[Math.floor(Math.random() * config.lines.length)];
-    window.PetState.setState('INTERACTION');
+    window.PetState.setActivity(window.PetActivity.INTERACTION);
     pet.tipsMessage(line, config.duration);
-    window.PetState.setState('TALKING');
+    window.PetState.setActivity(window.PetActivity.TALKING);
     if(talkTimer) clearTimeout(talkTimer);
     talkTimer = setTimeout(function(){
       pet.clearTips();
-      window.PetState.setState('IDLE');
+      window.PetState.setActivity(window.PetActivity.IDLE);
       talkTimer = null;
     }, config.duration);
   }

@@ -26,7 +26,7 @@ window.PetDrag = (function(){
       const dy = e.clientY - drag.sy;
       if(!drag.moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
       drag.moved = true;
-      window.PetState.setState('DRAGGING');                 // 超过阈值 = 拖动
+      window.PetState.setActivity(window.PetActivity.DRAGGING);                 // 超过阈值 = 拖动
       const s = drag.stage;
       s.style.left = (drag.l + dx) + 'px';
       s.style.top = (drag.t + dy) + 'px';
@@ -36,12 +36,12 @@ window.PetDrag = (function(){
     function endDrag(){
       if(drag && !drag.moved) window.PetDialogue.sayRandom(); // 未超过阈值 = 点击互动
       drag = null;
-      if(window.PetState.getState() === 'DRAGGING') window.PetState.setState('IDLE'); // 拖动结束 → 恢复待机
+      if(window.PetState.getActivity() === window.PetActivity.DRAGGING) window.PetState.setActivity(window.PetActivity.IDLE); // 拖动结束 → 恢复待机
     }
     document.addEventListener('pointerup', endDrag);
     document.addEventListener('pointercancel', function(){ // 触摸被中断（如滚动）时只清理，不触发点击
       drag = null;
-      if(window.PetState.getState() === 'DRAGGING') window.PetState.setState('IDLE');
+      if(window.PetState.getActivity() === window.PetActivity.DRAGGING) window.PetState.setActivity(window.PetActivity.IDLE);
     });
   }
 

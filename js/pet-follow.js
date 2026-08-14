@@ -20,7 +20,7 @@ window.PetFollow = (function(){
     if(raf) raf = requestAnimationFrame(update);
   }
   function onMove(e){
-    if(window.PetState.getState() === 'DRAGGING') return;   // 拖动时不跟随
+    if(window.PetState.getActivity() === window.PetActivity.DRAGGING) return;   // 拖动时不跟随
     const cx = window.innerWidth / 2;
     target = ((e.clientX - cx) / cx) * MAX;
     if(!raf) raf = requestAnimationFrame(update);
