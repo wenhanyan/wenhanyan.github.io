@@ -41,6 +41,7 @@ window.PetPersonality = (function(){
     },
     context: {
       project: [name + '发现' + master + '正在看作品呢。', master + '的作品都很有意思。'],
+      about:   ['这是' + master + '的自我介绍呀。', '在了解' + master + '呀，我都记着呢。'],
       ai:      ['这里是 AI 相关区域。', '在看 AI 助手呀。']
     },
     idle: {
