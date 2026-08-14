@@ -24,7 +24,7 @@ window.PetUser = (function(){
 
   return {
     getName(){ return name; },                      // 获取昵称（未来 AI 唯一用户身份来源）
-    getDisplayName(){ return name || '朋友'; },     // 未设置时显示"朋友"，避免 null
+    getDisplayName(){ return name || '主人'; },     // 未设置时兜底"主人"（身份规则：用户=主人），避免 null
     setName(n){                                     // 设置/修改昵称：trim + 转字符串 + 立即生效
       const v = (n == null) ? '' : String(n).trim();
       name = v || null;
