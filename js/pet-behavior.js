@@ -79,8 +79,11 @@ window.PetBehavior = (function(){
 
   // 页面进入：按关系等级决定欢迎语（stranger/familiar/friend）+ 长时间离开 longBack
   function welcomeBack(){
-    const level = window.PetMemory.getRelationshipLevel();   // stranger / familiar / friend
-    const gap = window.PetMemory.getLastGap();
+    // 守卫：旧缓存 pet-memory.js 可能缺 Step4 方法，缺省回退 stranger/null，避免 TypeError 阻断欢迎
+    const level = (typeof window.PetMemory.getRelationshipLevel === 'function')
+      ? window.PetMemory.getRelationshipLevel() : 'stranger';
+    const gap = (typeof window.PetMemory.getLastGap === 'function')
+      ? window.PetMemory.getLastGap() : null;
     if(level !== 'stranger' && gap != null && gap >= CFG.longBackMs){
       window.PetDialogue.say('welcome', 'longBack');        // 老朋友久别重逢
     } else {
@@ -110,7 +113,8 @@ window.PetBehavior = (function(){
       hiddenAt = null;
       window.PetState.touch();                    // 回来后重置空闲计时
       if(gap != null){                            // 切回标签页：按关系等级 + 离开时长欢迎
-        const level = window.PetMemory.getRelationshipLevel();
+        const level = (typeof window.PetMemory.getRelationshipLevel === 'function')
+          ? window.PetMemory.getRelationshipLevel() : 'stranger';
         if(level !== 'stranger' && gap >= CFG.longBackMs){
           window.PetDialogue.say('welcome', 'longBack');
         } else {
@@ -133,7 +137,10 @@ window.PetBehavior = (function(){
     welcomeBack();                                 // 页面加载：欢迎
     heartbeat = setInterval(tick, CFG.heartbeatMs);
     document.addEventListener('visibilitychange', onVisibility);
-    contextOff = window.PetContext.onChange(onSectionChange);  // 环境感知订阅
+    // 守卫：PetContext 是 Step4 新模块，缺省时跳过环境感知订阅（不影响欢迎/空闲等其它行为）
+    if(window.PetContext && typeof window.PetContext.onChange === 'function'){
+      contextOff = window.PetContext.onChange(onSectionChange);  // 环境感知订阅
+    }
   }
 
   function destroy(){

@@ -8,8 +8,8 @@ window.PetPersonality = (function(){
   }
 
   const name = window.PetProfile.name;              // 桌宠名字（唯一来源，禁止硬编码）
-  // 主人称谓：用户设置了昵称就用昵称，否则保持"主人"这一人格默认称呼（避免硬编码用户名）
-  const master = (window.PetUser && window.PetUser.getName()) || '主人';
+  // 主人称谓：统一身份关系——小D=桌宠，用户=主人（固定称呼"主人"，不再读昵称）
+  const master = '主人';
 
   const traits = ['curious', 'calm', 'creative'];   // 好奇、冷静、有创造力
   const tone = '简短、温和、聪明，不过度卖萌';
@@ -40,7 +40,7 @@ window.PetPersonality = (function(){
       SLEEPY:  ['让我休息一下嘛……', '嗯……']
     },
     context: {
-      project: [name + '发现' + master + '正在看作品呢。', master + '的作品都很有意思。'],
+      project: ['我发现' + master + '正在看作品呢。', master + '的作品都很有意思。'],
       about:   ['这是' + master + '的自我介绍呀。', '在了解' + master + '呀，我都记着呢。'],
       ai:      ['这里是 AI 相关区域。', '在看 AI 助手呀。']
     },
@@ -54,9 +54,10 @@ window.PetPersonality = (function(){
     restReminder: ['主人坐了好一会儿啦，起来活动一下吧。', '别太累啦，起来伸个懒腰嘛。']
   };
 
-  // 人格提示：只用 PetProfile.name（不包含真实用户名；未来 AI 从 PetUser.getDisplayName() 读主人称呼）
+  // 人格提示：只用 PetProfile.name（不包含真实用户名；AI 称呼用户为"主人"）
   const systemPrompt = '你是 ' + name + '，一个' +
-    window.PetProfile.identity + '。性格：好奇、冷静、有创造力。说话方式：' + tone + '。';
+    window.PetProfile.identity + '。你以第一人称「我」自称，称呼用户为「主人」。' +
+    '性格：好奇、冷静、有创造力。说话方式：' + tone + '。';
 
   return { traits, tone, banned, relationship, lines, systemPrompt };
 })();

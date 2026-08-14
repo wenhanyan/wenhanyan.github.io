@@ -43,16 +43,20 @@ window.PetDrag = (function(){
     });
     function endDrag(){
       if(drag && !drag.moved){ // 未超过阈值 = 点击互动：记录 + 先更新情绪，再按互动层级选台词
-        window.PetMemory.recordInteraction('click');
         window.PetEmotion.onInteraction();
-        // 互动反馈：第一次点击 → first；老朋友 → friend；否则按情绪选词（保持人格一致）
-        const clicks = (window.PetMemory.get().interactions || {}).click || 0;
+        // 互动反馈：第一次点击 → first；老朋友 → friend；否则按情绪选词（保持人格一致）。
+        // 记忆调用整体 try/catch 兜底：旧缓存 pet-memory.js 缺方法（recordInteraction/get/getRelationshipLevel）
+        // 时安全回退到情绪选词，绝不阻断 say('click')。
         let variant = null;
-        if(clicks === 1) variant = 'first';
-        // typeof 守卫：旧缓存 pet-memory.js 可能无 getRelationshipLevel（Step4 才加入），
-        // 直接调用会抛 TypeError 阻断 say('click')，导致点击无台词
-        else if(typeof window.PetMemory.getRelationshipLevel === 'function' &&
-                window.PetMemory.getRelationshipLevel() === 'friend') variant = 'friend';
+        try {
+          window.PetMemory.recordInteraction('click');
+          const clicks = (window.PetMemory.get().interactions || {}).click || 0;
+          if(clicks === 1) variant = 'first';
+          else if(typeof window.PetMemory.getRelationshipLevel === 'function' &&
+                  window.PetMemory.getRelationshipLevel() === 'friend') variant = 'friend';
+        } catch(e) {
+          variant = null;
+        }
         window.PetDialogue.say('click', variant);
       }
       drag = null;
