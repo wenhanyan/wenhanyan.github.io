@@ -49,7 +49,10 @@ window.PetDrag = (function(){
         const clicks = (window.PetMemory.get().interactions || {}).click || 0;
         let variant = null;
         if(clicks === 1) variant = 'first';
-        else if(window.PetMemory.getRelationshipLevel() === 'friend') variant = 'friend';
+        // typeof 守卫：旧缓存 pet-memory.js 可能无 getRelationshipLevel（Step4 才加入），
+        // 直接调用会抛 TypeError 阻断 say('click')，导致点击无台词
+        else if(typeof window.PetMemory.getRelationshipLevel === 'function' &&
+                window.PetMemory.getRelationshipLevel() === 'friend') variant = 'friend';
         window.PetDialogue.say('click', variant);
       }
       drag = null;
