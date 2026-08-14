@@ -59,10 +59,9 @@ a{color:inherit;text-decoration:none}
   transition:opacity .7s ease,visibility .7s;
 }
 #loader.done{opacity:0;visibility:hidden;pointer-events:none}
-.loader-word{font-family:var(--font-mono);font-weight:800;font-size:clamp(40px,8vw,88px);letter-spacing:.14em;display:flex}
-.loader-word span{display:inline-block;opacity:0;animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards}
-.loader-word .dot{color:var(--red)}
-@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.loader-mark{width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--red),var(--blue),var(--red));position:relative;animation:spin 1.4s linear infinite}
+.loader-mark::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--bg)}
+@keyframes spin{to{transform:rotate(360deg)}}
 .loader-line{width:0;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--red),var(--blue));animation:grow 2.6s .4s cubic-bezier(.6,0,.2,1) forwards}
 @keyframes grow{to{width:clamp(140px,36vw,260px)}}
 .loader-tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.3em;color:var(--ink-soft);opacity:0;animation:fade .8s 1.2s forwards}
@@ -140,11 +139,14 @@ main{min-height:70vh}
 
 /* ============ Hero（主页） ============ */
 .hero{position:relative;min-height:calc(100vh - 220px);display:flex;flex-direction:column;justify-content:center}
-.hero-deco{position:absolute;z-index:-1}
-.deco-red{width:clamp(140px,24vw,300px);height:clamp(140px,24vw,300px);background:var(--red);border-radius:50%;top:4%;right:2%;opacity:.9;filter:saturate(1.2);transition:translate .35s ease}
-.deco-blue{width:clamp(70px,12vw,140px);height:clamp(70px,12vw,140px);background:var(--blue);bottom:8%;left:4%;transform:rotate(12deg);transition:translate .35s ease}
-[data-theme="dark"] .deco-red{opacity:.55}
-[data-theme="dark"] .deco-blue{opacity:.55}
+.hero-deco{position:absolute;z-index:-1;pointer-events:none;will-change:transform}
+.deco-ring{width:clamp(220px,38vw,460px);height:clamp(220px,38vw,460px);border:2px solid color-mix(in srgb,var(--red) 20%,transparent);border-radius:50%;top:6%;left:36%}
+.deco-red{width:clamp(160px,26vw,320px);height:clamp(160px,26vw,320px);border-radius:50%;top:6%;right:3%;background:radial-gradient(circle at 32% 28%,#ff6b6b 0%,var(--red) 52%,#c40d0d 100%);box-shadow:0 34px 90px -22px rgba(255,31,31,.55),inset 0 -16px 36px rgba(0,0,0,.16)}
+.deco-red::after{content:"";position:absolute;inset:-24px;border:1.5px solid color-mix(in srgb,var(--red) 34%,transparent);border-radius:50%}
+.deco-blue{width:clamp(92px,15vw,150px);height:clamp(92px,15vw,150px);border-radius:24%;bottom:8%;left:5%;transform:rotate(12deg);background:linear-gradient(135deg,#5f8aff 0%,var(--blue) 55%,#0f2fd6 100%);box-shadow:0 28px 64px -18px rgba(27,77,255,.5),inset 0 -12px 26px rgba(0,0,0,.16)}
+.deco-blue::after{content:"";position:absolute;inset:12px;border:1.5px solid rgba(255,255,255,.38);border-radius:16%}
+[data-theme="dark"] .deco-red{opacity:.8}
+[data-theme="dark"] .deco-blue{opacity:.8}
 .hero-role{font-family:var(--font-mono);font-size:14px;letter-spacing:.22em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:22px}
 .hero-role .bar{display:inline-block;width:34px;height:2px;background:var(--red);vertical-align:middle;margin-right:14px}
 .hero-name{font-size:clamp(46px,11vw,120px);font-weight:900;line-height:.98;letter-spacing:-.03em;margin-bottom:18px}
@@ -264,6 +266,29 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 .tb-social button:hover::after{width:100%}
 .kind-select{font-family:var(--font-mono);font-size:12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);padding:4px 6px;cursor:pointer}
 
+/* ============ 游戏截图 / 排序按钮 / 截图灯箱 ============ */
+.shot-title{font-size:13px;font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+.shot-title::before{content:"";width:20px;height:2px;background:var(--red)}
+.shots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.shot{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--bg-soft);cursor:zoom-in}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+.shot:hover img{transform:scale(1.06)}
+.shot-rm{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,.55);color:#fff;font-size:14px;line-height:1;cursor:pointer;display:grid;place-items:center;opacity:0;transition:.2s}
+.shot:hover .shot-rm{opacity:1}
+.shot-rm:hover{background:var(--red)}
+.shot-lightbox{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:30px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.shot-lightbox.show{opacity:1;visibility:visible}
+.shot-lightbox img{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.shot-lightbox .sheet-close{position:absolute;top:18px;right:18px}
+
+/* 排序按钮（上移/下移） */
+.mv-wrap{display:flex;gap:6px;align-items:center}
+.project-card .mv-wrap{position:absolute;top:12px;right:14px}
+.mv-btn{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:.15s}
+.mv-btn:hover{color:var(--blue);border-color:var(--blue);transform:translateY(-1px)}
+.mv-btn:disabled{opacity:.25;pointer-events:none}
+.mv-wrap .rm-btn{margin-left:0}
+
 /* ============ 登录弹窗 ============ */
 .modal-backdrop{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
 .modal-backdrop.show{opacity:1;visibility:visible}
@@ -369,13 +394,14 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   100%{opacity:0;transform:scale(.94) translateY(22px);filter:blur(16px)}
 }
 
-/* ============ 自定义光标 ============ */
+/* ============ 自定义光标（红蓝黑白简洁风） ============ */
 .cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:99999;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s}
-.cursor-dot{width:9px;height:9px;background:linear-gradient(135deg,var(--red),var(--blue));box-shadow:0 0 10px rgba(255,31,31,.45)}
-.cursor-ring{width:38px;height:38px;border:1.6px solid var(--red);transition:opacity .2s,width .22s,height .22s,border-color .22s,background .22s}
+.cursor-dot{width:6px;height:6px;background:var(--red);transition:opacity .2s,background .2s}
+.cursor-ring{width:34px;height:34px;border:1.5px solid var(--ink);opacity:.85;transition:opacity .2s,width .24s cubic-bezier(.2,.8,.2,1),height .24s cubic-bezier(.2,.8,.2,1),border-color .24s,background .24s}
 .cursor-dot.hide,.cursor-ring.hide{opacity:0}
-.cursor-ring.is-active{width:60px;height:60px;border-color:var(--blue);background:color-mix(in srgb,var(--blue) 10%,transparent)}
-.cursor-ring.is-down{width:30px;height:30px}
+.cursor-ring.is-active{width:54px;height:54px;border-color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,transparent)}
+.cursor-dot.is-active{background:var(--blue)}
+.cursor-ring.is-down{width:26px;height:26px}
 @media (hover:hover) and (pointer:fine){
   .cursor-dot,.cursor-ring{opacity:1}
   *{cursor:none !important}
@@ -404,7 +430,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 
 <!-- 开场动画 -->
 <div id="loader" aria-hidden="true">
-  <div class="loader-word" id="loaderWord"></div>
+  <div class="loader-mark"></div>
   <div class="loader-line"></div>
   <div class="loader-tag" id="loaderTag">DELTA · PORTFOLIO</div>
 </div>
@@ -441,8 +467,9 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   <section id="view-home" class="view active">
     <div class="container">
       <div class="hero">
-        <div class="hero-deco deco-red"></div>
-        <div class="hero-deco deco-blue"></div>
+        <div class="hero-deco deco-ring" data-parallax="10"></div>
+        <div class="hero-deco deco-red" data-parallax="22"></div>
+        <div class="hero-deco deco-blue" data-parallax="-30" data-rot="12"></div>
         <p class="hero-role reveal"><span class="bar"></span><span data-bind="role"></span></p>
         <h1 class="hero-name reveal"><span class="grad" data-bind="name"></span></h1>
         <p class="hero-tagline reveal" data-bind="tagline"></p>
@@ -611,6 +638,12 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   </div>
 </div>
 
+<!-- 截图灯箱 -->
+<div class="shot-lightbox" id="shotLightbox">
+  <button class="sheet-close" id="shotLightboxClose" aria-label="关闭大图">×</button>
+  <img id="shotLightboxImg" alt="截图大图">
+</div>
+
 <!-- 登录弹窗 -->
 <div class="modal-backdrop" id="authModal" role="dialog" aria-modal="true">
   <div class="modal-card">
@@ -734,7 +767,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(typeof d.resume.summary !== 'string') d.resume.summary = def.resume.summary;
     if(typeof d.resume.photo !== 'string') d.resume.photo = def.resume.photo || '';
     (d.reading||[]).forEach(r=>{ if(!r||typeof r!=='object') return; if(typeof r.rating!=='number') r.rating=0; if(typeof r.review!=='string') r.review=''; if(typeof r.cover!=='string') r.cover=''; if(typeof r.status!=='string') r.status='已读'; });
-    (d.games||[]).forEach(g=>{ if(!g||typeof g!=='object') return; if(typeof g.rating!=='number') g.rating=0; if(typeof g.completion!=='number') g.completion=100; if(typeof g.review!=='string') g.review=''; if(typeof g.status!=='string') g.status='已通关'; if(typeof g.hours!=='string') g.hours=''; if(typeof g.cover!=='string') g.cover=''; });
+    (d.games||[]).forEach(g=>{ if(!g||typeof g!=='object') return; if(typeof g.rating!=='number') g.rating=0; if(typeof g.completion!=='number') g.completion=100; if(typeof g.review!=='string') g.review=''; if(typeof g.status!=='string') g.status='已通关'; if(typeof g.hours!=='string') g.hours=''; if(typeof g.cover!=='string') g.cover=''; if(!Array.isArray(g.screenshots)) g.screenshots=[]; });
     return d;
   }
 
@@ -981,7 +1014,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         ? '<span class="project-link"><span class="arr">↗</span> <span data-bind="projects.'+i+'.link" contenteditable="true">'+esc(p.link)+'</span></span>'
         : (p.link ? '<a class="project-link" href="'+esc(p.link)+'" target="_blank" rel="noopener">访问项目 <span class="arr">↗</span></a>' : '');
       return '<article class="project-card">'
-        + (edit ? '<button class="rm-btn" data-rm="projects" data-i="'+i+'" style="position:absolute;top:12px;right:14px">×</button>' : '')
+        + (edit ? '<div class="mv-wrap"><button class="mv-btn" data-move="projects" data-i="'+i+'" data-dir="-1" '+(i===0?'disabled':'')+' title="上移">↑</button><button class="mv-btn" data-move="projects" data-i="'+i+'" data-dir="1" '+(i===data.projects.length-1?'disabled':'')+' title="下移">↓</button><button class="rm-btn" data-rm="projects" data-i="'+i+'" title="删除">×</button></div>' : '')
         + '<div class="project-index">' + String(i+1).padStart(2,'0') + '</div>'
         + '<h3 class="project-title" data-bind="projects.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(p.title)+'</h3>'
         + '<p class="project-desc" data-bind="projects.'+i+'.desc" contenteditable="'+(edit?'true':'false')+'">'+esc(p.desc)+'</p>'
@@ -1018,7 +1051,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         ? '<span class="thumb"><img src="'+esc(g.cover)+'" alt=""></span>'
         : '<span class="thumb">'+esc(String(g.title||'游').charAt(0))+'</span>';
       return '<div class="item" data-open-game="'+i+'">'
-        + (edit ? '<button class="rm-btn" data-rm="games" data-i="'+i+'">×</button>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
+        + (edit ? '<div class="mv-wrap"><button class="mv-btn" data-move="games" data-i="'+i+'" data-dir="-1" '+(i===0?'disabled':'')+' title="上移">↑</button><button class="mv-btn" data-move="games" data-i="'+i+'" data-dir="1" '+(i===data.games.length-1?'disabled':'')+' title="下移">↓</button><button class="rm-btn" data-rm="games" data-i="'+i+'" title="删除">×</button></div>' : '<span class="num">'+String(i+1).padStart(2,'0')+'</span>')
         + cover
         + '<div class="body">'
         + '<div class="t" data-bind="games.'+i+'.title" contenteditable="'+(edit?'true':'false')+'">'+esc(g.title)+'</div>'
@@ -1112,11 +1145,37 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       + (editing
           ? '<label class="field-label">完成度<input id="gameComplete" type="range" min="0" max="100" value="'+comp+'"></label>'
             + '<label class="field-label">游玩时长（小时）<input id="gameHours" type="text" value="'+esc(g.hours||'')+'" placeholder="如 120"></label>'
-            + '<label class="field-label">点评<textarea id="gameReview" rows="5" placeholder="对这个游戏的评价…">'+esc(g.review||'')+'</textarea></label>'
-            + '<button class="btn btn-blue sheet-done" data-close-sheet>完成</button>'
-          : '<div class="detail-note">'+esc(g.review||'（暂无点评）')+'</div>');
+            + '<label class="field-label">点评<textarea id="gameReview" rows="4" placeholder="对这个游戏的评价…">'+esc(g.review||'')+'</textarea></label>'
+          : '<div class="detail-note">'+esc(g.review||'（暂无点评）')+'</div>')
+      + '<div class="shot-title">截图 Screenshots</div>'
+      + '<div id="gameShots"></div>'
+      + (editing ? '<button class="btn btn-ghost" data-upload="shot" style="width:100%;justify-content:center;padding:10px 16px;margin-top:10px">📁 上传截图</button>' : '')
+      + (editing ? '<button class="btn btn-blue sheet-done" data-close-sheet>完成</button>' : '');
     document.getElementById('gameDetail').innerHTML = html;
     document.getElementById('gameSheet').classList.add('show');
+    renderShots();
+  }
+  function renderShots(){
+    if(!detail || detail.kind !== 'game') return;
+    const g = data.games[detail.i];
+    const el = document.getElementById('gameShots');
+    if(!el) return;
+    const shots = g.screenshots || [];
+    el.innerHTML = shots.length
+      ? '<div class="shots-grid">' + shots.map(function(src, si){
+          return '<div class="shot" data-shot="'+si+'">'
+            + '<img src="'+esc(src)+'" alt="截图 '+(si+1)+'">'
+            + (editing ? '<button class="shot-rm" data-shot-rm="'+si+'" title="删除">×</button>' : '')
+            + '</div>';
+        }).join('') + '</div>'
+      : '<div class="detail-note" style="opacity:.6">' + (editing ? '还没有截图，点击下方「上传截图」添加' : '暂无截图') + '</div>';
+  }
+  function openLightbox(src){
+    document.getElementById('shotLightboxImg').src = src;
+    document.getElementById('shotLightbox').classList.add('show');
+  }
+  function closeLightbox(){
+    document.getElementById('shotLightbox').classList.remove('show');
   }
   function closeSheet(){
     document.getElementById('bookSheet').classList.remove('show');
@@ -1255,23 +1314,39 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     }, 820);
   }
 
-  /* ============ 视差（小范围跟随光标） ============ */
+  /* ============ 视差（红蓝图形跟随光标，带缓动/倾斜/缩放） ============ */
   function initParallax(){
     const hero = document.querySelector('.hero');
     if(!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const red = hero.querySelector('.deco-red');
-    const blue = hero.querySelector('.deco-blue');
+    const layers = Array.prototype.slice.call(hero.querySelectorAll('.hero-deco'));
+    if(!layers.length) return;
+    const cfg = layers.map(function(el){
+      return { el: el, depth: parseFloat(el.dataset.parallax || '0'), rot: parseFloat(el.dataset.rot || '0') };
+    });
+    let tx = 0, ty = 0, cx = 0, cy = 0, running = false;
+    function tick(){
+      cx += (tx - cx) * 0.09;
+      cy += (ty - cy) * 0.09;
+      const mag = Math.min(1, Math.sqrt(cx*cx + cy*cy));
+      cfg.forEach(function(l){
+        const x = cx * l.depth, y = cy * l.depth;
+        const tilt = cy * 6;
+        const scale = 1 + mag * 0.05;
+        l.el.style.transform = 'translate('+x.toFixed(2)+'px,'+y.toFixed(2)+'px) rotate('+(l.rot + tilt).toFixed(2)+'deg) scale('+scale.toFixed(3)+')';
+      });
+      if(Math.abs(tx-cx)>.003 || Math.abs(ty-cy)>.003){ requestAnimationFrame(tick); }
+      else { running = false; }
+    }
+    function start(){ if(!running){ running = true; requestAnimationFrame(tick); } }
+    // 初始就位（保留基础旋转，未移动光标时也有完整造型）
+    cfg.forEach(function(l){ l.el.style.transform = 'translate(0px,0px) rotate('+l.rot+'deg) scale(1)'; });
     hero.addEventListener('mousemove', function(e){
-      const rect = hero.getBoundingClientRect();
-      const x = (e.clientX - rect.left)/rect.width - .5;
-      const y = (e.clientY - rect.top)/rect.height - .5;
-      if(red) red.style.translate = (x*9)+'px '+(y*9)+'px';
-      if(blue) blue.style.translate = (x*-11)+'px '+(y*-11)+'px';
+      const r = hero.getBoundingClientRect();
+      tx = (e.clientX - r.left)/r.width*2 - 1;
+      ty = (e.clientY - r.top)/r.height*2 - 1;
+      start();
     });
-    hero.addEventListener('mouseleave', function(){
-      if(red) red.style.translate = '0px 0px';
-      if(blue) blue.style.translate = '0px 0px';
-    });
+    hero.addEventListener('mouseleave', function(){ tx = 0; ty = 0; start(); });
   }
 
   /* ============ 自定义光标 ============ */
@@ -1290,13 +1365,13 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       ring.style.left = rx+'px'; ring.style.top = ry+'px';
       requestAnimationFrame(loop);
     })();
-    const hoverSel = 'a,button,[data-goto],[data-open-book],[data-open-game],[data-copy],.nav-btn,.star,.status-pill[data-status]';
+    const hoverSel = 'a,button,[data-goto],[data-open-book],[data-open-game],[data-copy],[data-shot],.nav-btn,.star,.status-pill[data-status]';
     document.addEventListener('mouseover', function(e){
       const t = e.target;
       if(t.closest && t.closest('input,textarea,select,[contenteditable="true"]')){ dot.classList.add('hide'); ring.classList.add('hide'); return; }
       dot.classList.remove('hide'); ring.classList.remove('hide');
-      if(t.closest && t.closest(hoverSel)) ring.classList.add('is-active');
-      else ring.classList.remove('is-active');
+      if(t.closest && t.closest(hoverSel)){ ring.classList.add('is-active'); dot.classList.add('is-active'); }
+      else { ring.classList.remove('is-active'); dot.classList.remove('is-active'); }
     });
     document.addEventListener('mousedown', function(){ ring.classList.add('is-down'); });
     document.addEventListener('mouseup', function(){ ring.classList.remove('is-down'); });
@@ -1333,6 +1408,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     currentSession().then(function(sess){
       if(sess){
         pushRemote(data).then(function(res){
+          if(!editing) return; // 非编辑态静默保存（关详情/关页面时），不弹提示
           if(res.ok){ toast('已保存 · 已同步全网 ✓'); }
           else{
             let m = res.error ? (res.error.message || res.error.details || res.error.hint || String(res.error)) : '';
@@ -1341,7 +1417,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
           }
         });
       }else{
-        toast('已保存到本机 · 登录后可同步全网');
+        if(editing) toast('已保存到本机 · 登录后可同步全网');
       }
     });
   }
@@ -1475,9 +1551,10 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       const kind = up.dataset.upload;
       // 在点击时立即捕获目标索引，避免异步回调时 detail 发生变化
       const idx = (kind === 'book' && detail && detail.kind === 'book') ? detail.i
-                : (kind === 'game' && detail && detail.kind === 'game') ? detail.i : null;
+                : ((kind === 'game' || kind === 'shot') && detail && detail.kind === 'game') ? detail.i : null;
       pickLocalImage(function(dataUrl){
         if(!dataUrl){ toast('图片读取失败，请重试'); return; }
+        let msg = '已上传图片（记得点「完成」保存）';
         if(kind === 'resume'){
           data.resume.photo = dataUrl;
           const inp = document.getElementById('resumePhoto'); if(inp) inp.value = dataUrl;
@@ -1490,8 +1567,12 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
           data.games[idx].cover = dataUrl;
           const inp = document.getElementById('gameCover'); if(inp) inp.value = dataUrl;
           const cv = document.querySelector('#gameDetail .cover'); if(cv) cv.innerHTML = '<img src="'+esc(dataUrl)+'" alt="封面">';
+        }else if(kind === 'shot' && idx != null){
+          (data.games[idx].screenshots = data.games[idx].screenshots || []).push(dataUrl);
+          renderShots();
+          msg = '已添加截图（记得点「完成」保存）';
         }
-        toast('已上传图片（记得点「完成」保存）');
+        toast(msg);
       });
       return;
     }
@@ -1530,7 +1611,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         methods: {kind:'wechat', value:'新微信号'},
         projects: {title:'新项目', desc:'项目描述', tags:'标签1, 标签2', link:'https://'},
         reading: {title:'书名', author:'作者', note:'读后感', rating:0, review:'', cover:'', status:'想读'},
-        games: {title:'游戏名', platform:'平台', note:'点评', rating:0, completion:0, review:'', status:'未开始', hours:'', cover:''},
+        games: {title:'游戏名', platform:'平台', note:'点评', rating:0, completion:0, review:'', status:'未开始', hours:'', cover:'', screenshots:[]},
         experience: {period:'2026 — 至今', role:'职位', org:'公司', desc:'工作内容'},
         education: {period:'年份', degree:'学位', org:'学校'}
       }[key];
@@ -1541,6 +1622,41 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       else data[key].push(blank);
       renderAll(editing);
       persist();
+      return;
+    }
+    // 排序（上移/下移）
+    const mv = e.target.closest('[data-move]');
+    if(mv){
+      playClick();
+      const key = mv.dataset.move, i = +mv.dataset.i, dir = +mv.dataset.dir;
+      collectEdits();
+      const arr = data[key];
+      const j = i + dir;
+      if(Array.isArray(arr) && j >= 0 && j < arr.length){
+        const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        renderAll(editing);
+        persist();
+      }
+      return;
+    }
+    // 删除截图
+    const srm = e.target.closest('[data-shot-rm]');
+    if(srm){
+      playClick();
+      if(detail && detail.kind === 'game'){
+        const arr = data.games[detail.i].screenshots || [];
+        arr.splice(+srm.dataset.shotRm, 1);
+        renderShots();
+        persist();
+      }
+      return;
+    }
+    // 查看截图大图
+    const shot = e.target.closest('[data-shot]');
+    if(shot){
+      playClick();
+      const img = shot.querySelector('img');
+      if(img) openLightbox(img.getAttribute('src'));
       return;
     }
     // 主题切换
@@ -1630,14 +1746,20 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(e.target.closest('#authLoginBtn')){ doLogin(); return; }
     if(e.target.closest('#authCancelBtn')){ closeAuth(); return; }
     if(e.target.classList && e.target.classList.contains('modal-backdrop')){ closeAuth(); return; }
+    if(e.target.id === 'shotLightbox' || e.target.id === 'shotLightboxClose'){ closeLightbox(); return; }
   });
 
-  // 登录弹窗：回车登录 / Esc 关闭
+  // 登录弹窗：回车登录 / Esc 关闭；截图灯箱 Esc 关闭
   document.addEventListener('keydown', function(e){
     const modal = document.getElementById('authModal');
     if(modal.classList.contains('show')){
       if(e.key === 'Enter'){ e.preventDefault(); doLogin(); }
       else if(e.key === 'Escape'){ closeAuth(); }
+      return;
+    }
+    if(e.key === 'Escape'){
+      const lb = document.getElementById('shotLightbox');
+      if(lb && lb.classList.contains('show')){ closeLightbox(); }
     }
   });
   // 详情页表单 / 简历照片：即时写入数据
@@ -1664,13 +1786,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 
   /* ============ 开场动画 ============ */
   function setupLoader(){
-    const nm = data.name || 'Delta';
-    const loaderWord = document.getElementById('loaderWord');
-    if(loaderWord){
-      loaderWord.innerHTML = nm.split('').map((c,i)=>{
-        return '<span style="animation-delay:'+(0.25+i*0.09)+'s">'+esc(c)+'</span>';
-      }).join('');
-    }
+    // 加载页不再展示大字号姓名（避免与主页姓名重复出现两次），这里只同步品牌文字
     syncBrand();
   }
   setupLoader();
