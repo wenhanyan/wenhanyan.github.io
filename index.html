@@ -1816,6 +1816,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   function bootLive2d(){
     if(!window.OML2D) return; // CDN 加载失败时静默跳过，不影响网站其余功能
     OML2D.loadOml2d({
+      dockedPosition: 'right', // 默认是 left（会跑到左下角），这里改成右下角
       models: [
         {
           path: 'https://model.hacxy.cn/HK416-1-normal/model.json',
@@ -1826,6 +1827,36 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       ]
     });
   }
+
+  /* oh-my-live2d 本身不支持自由拖动，这里手动实现：按住模型画布拖动整个桌宠 */
+  let l2dDrag = null;
+  function initLive2dDrag(){
+    document.addEventListener('pointerdown', function(e){
+      if(!e.target || !e.target.closest) return;
+      if(!e.target.closest('.oml2d-canvas')) return;
+      const stage = e.target.closest('.oml2d-stage');
+      if(!stage) return;
+      const r = stage.getBoundingClientRect();
+      l2dDrag = { stage: stage, sx: e.clientX, sy: e.clientY, l: r.left, t: r.top, moved: false };
+    });
+    document.addEventListener('pointermove', function(e){
+      if(!l2dDrag) return;
+      const dx = e.clientX - l2dDrag.sx;
+      const dy = e.clientY - l2dDrag.sy;
+      if(!l2dDrag.moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+      l2dDrag.moved = true;
+      const s = l2dDrag.stage;
+      s.style.left = (l2dDrag.l + dx) + 'px';
+      s.style.top = (l2dDrag.t + dy) + 'px';
+      s.style.right = 'auto';
+      s.style.bottom = 'auto';
+    });
+    function endDrag(){ l2dDrag = null; }
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+  }
+  initLive2dDrag();
+
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', bootLive2d);
   } else {
