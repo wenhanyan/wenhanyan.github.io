@@ -1833,8 +1833,8 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   function initLive2dDrag(){
     document.addEventListener('pointerdown', function(e){
       if(!e.target || !e.target.closest) return;
-      if(!e.target.closest('.oml2d-canvas')) return;
-      const stage = e.target.closest('.oml2d-stage');
+      if(!e.target.closest('#oml2d-canvas')) return;
+      const stage = e.target.closest('#oml2d-stage');
       if(!stage) return;
       const r = stage.getBoundingClientRect();
       l2dDrag = { stage: stage, sx: e.clientX, sy: e.clientY, l: r.left, t: r.top, moved: false };
