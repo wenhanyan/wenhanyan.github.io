@@ -1,4 +1,4 @@
-/* Live2D 桌宠 · 拖动 + 点击检测（4px 阈值区分）。依赖：PetState、PetEmotion、PetDialogue。 */
+/* Live2D 桌宠 · 拖动 + 点击检测（4px 阈值区分）。依赖：PetState、PetEmotion、PetDialogue、PetMemory。 */
 window.PetDrag = (function(){
   if(!window.PetState){
     console.error('[PetDrag] 依赖未加载：PetState');
@@ -8,6 +8,9 @@ window.PetDrag = (function(){
   }
   if(!window.PetDialogue){
     console.error('[PetDrag] 依赖未加载：PetDialogue');
+  }
+  if(!window.PetMemory){
+    console.error('[PetDrag] 依赖未加载：PetMemory');
   }
 
   let drag = null;
@@ -21,6 +24,7 @@ window.PetDrag = (function(){
       const stage = e.target.closest('#oml2d-stage');
       if(!stage) return;
       const r = stage.getBoundingClientRect();
+      window.PetState.touch();                  // 任何与桌宠的接触都算互动，重置空闲计时
       drag = { stage: stage, sx: e.clientX, sy: e.clientY, l: r.left, t: r.top, moved: false };
     });
     document.addEventListener('pointermove', function(e){
@@ -29,6 +33,7 @@ window.PetDrag = (function(){
       const dy = e.clientY - drag.sy;
       if(!drag.moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
       drag.moved = true;
+      window.PetMemory.recordInteraction('drag');                              // 记录一次拖动
       window.PetState.setActivity(window.PetActivity.DRAGGING);                 // 超过阈值 = 拖动
       const s = drag.stage;
       s.style.left = (drag.l + dx) + 'px';
@@ -37,7 +42,8 @@ window.PetDrag = (function(){
       s.style.bottom = 'auto';
     });
     function endDrag(){
-      if(drag && !drag.moved){ // 未超过阈值 = 点击互动：先更新情绪，再按新情绪选台词
+      if(drag && !drag.moved){ // 未超过阈值 = 点击互动：记录 + 先更新情绪，再按新情绪选台词
+        window.PetMemory.recordInteraction('click');
         window.PetEmotion.onInteraction();
         window.PetDialogue.say('click');
       }

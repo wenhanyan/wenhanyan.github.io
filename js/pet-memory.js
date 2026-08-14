@@ -11,6 +11,7 @@ window.PetMemory = (function(){
       firstVisit: null,
       lastVisit: null,
       visitCount: 0,
+      lastGap: null,                             // 距上次访问的时长（毫秒），首次为 null
       interactions: { click: 0, drag: 0 }
     };
   }
@@ -29,9 +30,10 @@ window.PetMemory = (function(){
   }
 
   return {
-    recordVisit(){                                  // 页面进入时调用：visitCount+1、更新 lastVisit、首次写 firstVisit
+    recordVisit(){                                  // 页面进入时调用：覆盖 lastVisit 前先捕获离开时长 lastGap
       const now = Date.now();
       if(!data.firstVisit) data.firstVisit = now;
+      data.lastGap = data.lastVisit ? (now - data.lastVisit) : null;
       data.lastVisit = now;
       data.visitCount += 1;
       save();
@@ -43,6 +45,8 @@ window.PetMemory = (function(){
       }
     },
     isFirstVisit(){ return data.visitCount === 1; },
+    getLastGap(){ return data.lastGap; },          // 距上次访问时长（毫秒），用于回来欢迎语分层
+    getVisitCount(){ return data.visitCount; },    // 累计访问次数（熟悉度）
     get(){ return data; }
   };
 })();

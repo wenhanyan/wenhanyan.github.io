@@ -8,6 +8,7 @@ window.PetEmotion = (function(){
   }
 
   const T = window.PetEmotionType;
+  const listeners = [];   // 情绪变化订阅（通用事件钩子，供 UI 层监听，非 UI 逻辑）
 
   function get(){
     return window.PetState.getEmotion();
@@ -18,7 +19,17 @@ window.PetEmotion = (function(){
       console.error('[PetEmotion] 非法情绪：', emotion);
       return;
     }
+    const prev = window.PetState.getEmotion();
+    if(prev === emotion) return;
     window.PetState.setEmotion(emotion);
+    listeners.forEach(function(fn){ try{ fn(emotion); }catch(e){} });
+  }
+
+  // 订阅情绪变化，返回解绑函数（方便 UI 层清理）
+  function onChange(fn){
+    if(typeof fn !== 'function') return function(){};
+    listeners.push(fn);
+    return function(){ const i = listeners.indexOf(fn); if(i >= 0) listeners.splice(i, 1); };
   }
 
   // 用户点击：睡眠中 → 醒来恢复平静；否则随机 HAPPY/CURIOUS
@@ -40,5 +51,5 @@ window.PetEmotion = (function(){
     set(Math.random() < 0.5 ? T.CALM : T.HAPPY);
   }
 
-  return { get, set, onInteraction, onIdle, onWake };
+  return { get, set, onChange, onInteraction, onIdle, onWake };
 })();

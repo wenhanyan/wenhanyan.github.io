@@ -1,0 +1,97 @@
+/* ============================================================
+   小D 专属交互面板 —— 覆盖 oh-my-live2d 默认样式
+   蓝 / 红 / 白 视觉体系，颜色跟随网站主题变量（--blue / --red / --card / --ink）
+   只改视觉与交互，不改功能（休息 / 切换衣服 / 切换模型）
+   ============================================================ */
+
+/* ---- 图标：随按钮文字色（蓝色 → 蓝色图标） ---- */
+#oml2d-stage .oml2d-icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+/* ---- 菜单容器：白色半透明卡片 ---- */
+#oml2d-menus {
+  bottom: 12% !important;                 /* 覆盖内联 bottom:10%，略抬高避免贴边 */
+  font-size: 20px !important;             /* 覆盖内联 font-size:26px，控制图标大小 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: var(--card, #ffffff);       /* 旧浏览器兜底 */
+  background: color-mix(in srgb, var(--card, #ffffff) 86%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--blue, #1b4dff);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  transform: translateY(8px);             /* 关闭态轻微下沉，打开时滑入 */
+}
+
+/* 打开：stage 悬停 → 上滑（opacity/visibility 由库 JS 切换，这里补位移） */
+#oml2d-stage:hover #oml2d-menus {
+  transform: translateY(0);
+}
+
+/* ---- 菜单按钮 ---- */
+#oml2d-menus .oml2d-menus-item {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: var(--card, #ffffff);
+  color: var(--blue, #1b4dff);
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  transition: all 160ms ease;
+}
+#oml2d-menus .oml2d-menus-item:hover {
+  background: linear-gradient(135deg, var(--blue, #1b4dff), #5f8aff);
+  color: #ffffff;
+  border-color: var(--blue, #1b4dff);
+  transform: scale(1.06);                 /* 轻微缩放 */
+}
+#oml2d-menus .oml2d-menus-item:active {
+  background: var(--red, #ff1f1f);        /* 点击短暂红色强调 = 小D 正在响应 */
+  color: #ffffff;
+  transform: scale(0.96);
+}
+
+/* ---- 对话气泡（pet-bubble → #oml2d-tips）---- */
+#oml2d-tips {
+  background-color: var(--card, #ffffff) !important;
+  border: 2px solid var(--blue, #1b4dff) !important;
+  border-radius: 14px !important;
+  color: var(--ink, #0b0b0c) !important;
+  font-size: 15px !important;
+  padding: 10px 14px !important;
+  min-height: 0 !important;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12)) !important;
+}
+
+/* ---- 情绪联动（由 js/pet-menu.js 给 #oml2d-stage 加类）----
+   注：菜单的 opacity 由库用内联样式控制（0 隐藏 / 1 显示），
+   故 SLEEPY 用去饱和/变暗表达"困倦"，不用 opacity 以免破坏显示/隐藏 */
+#oml2d-stage.pet-emotion-happy #oml2d-menus {
+  border-color: var(--red, #ff1f1f);
+  box-shadow: 0 8px 24px rgba(255, 31, 31, 0.20);
+}
+#oml2d-stage.pet-emotion-curious #oml2d-menus {
+  box-shadow: 0 8px 24px rgba(27, 77, 255, 0.22);
+}
+#oml2d-stage.pet-emotion-sleepy #oml2d-menus {
+  filter: saturate(0.5) brightness(0.96);
+}
+
+/* ---- 移动端适配 ---- */
+@media (max-width: 768px) {
+  #oml2d-menus {
+    padding: 8px;
+    border-radius: 12px;
+    font-size: 18px !important;
+  }
+  #oml2d-menus .oml2d-menus-item {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+}

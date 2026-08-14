@@ -17,15 +17,15 @@ window.PetConfig = Object.freeze({
   version: 1,                    // localStorage 数据版本，未来升级迁移用
   memoryKey: 'delta_pet_memory',
   userKey: 'delta_pet_user',
-  behavior: {                    // 阶段3 主动行为使用（本阶段只定义不消费）
-    idleTalkMinMs: 25000,        // 首次主动搭话最短间隔
-    idleTalkMaxMs: 45000,        // 首次主动搭话最长间隔
-    talkCooldownMinMs: 120000,   // 搭话最小冷却
-    talkCooldownMaxMs: 300000,   // 搭话最大冷却
-    restAfterMs: 180000          // 无操作多久进入休息
+  behavior: {                    // 阶段3 行为调度使用
+    heartbeatMs: 10000,          // 空闲心跳检查间隔
+    sleepyAfterMs: 180000,       // 无互动 3 分钟 → SLEEPY（发呆/打哈欠）
+    restAfterMs: 360000,         // 无互动 6 分钟 → 进入休息
+    restReminderDelayMs: 4000,   // 休息行为后多久提醒主人起身（错开上一条气泡）
+    shortBackMs: 1800000,        // 离开 ≤ 30 分钟 = 短时间回来
+    longBackMs: 86400000         // 离开 ≥ 24 小时 = 长时间回来
   },
-  emotion: {                     // 阶段2 情绪使用
-    default: PetEmotionType.CALM,
-    sleepyAfterMs: 180000        // 无互动多久变 SLEEPY
+  emotion: {                     // 情绪参数
+    default: PetEmotionType.CALM
   }
 });
