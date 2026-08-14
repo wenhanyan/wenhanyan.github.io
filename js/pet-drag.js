@@ -42,10 +42,15 @@ window.PetDrag = (function(){
       s.style.bottom = 'auto';
     });
     function endDrag(){
-      if(drag && !drag.moved){ // 未超过阈值 = 点击互动：记录 + 先更新情绪，再按新情绪选台词
+      if(drag && !drag.moved){ // 未超过阈值 = 点击互动：记录 + 先更新情绪，再按互动层级选台词
         window.PetMemory.recordInteraction('click');
         window.PetEmotion.onInteraction();
-        window.PetDialogue.say('click');
+        // 互动反馈：第一次点击 → first；老朋友 → friend；否则按情绪选词（保持人格一致）
+        const clicks = (window.PetMemory.get().interactions || {}).click || 0;
+        let variant = null;
+        if(clicks === 1) variant = 'first';
+        else if(window.PetMemory.getRelationshipLevel() === 'friend') variant = 'friend';
+        window.PetDialogue.say('click', variant);
       }
       drag = null;
       if(window.PetState.getActivity() === window.PetActivity.DRAGGING) window.PetState.setActivity(window.PetActivity.IDLE); // 拖动结束 → 恢复待机

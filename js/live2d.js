@@ -22,6 +22,7 @@
   function boot(){
     window.PetMemory.recordVisit(); // 记录本次访问（不依赖 OML2D，CDN 失败也照常记录）
     if(!window.OML2D) return; // CDN 加载失败时静默跳过，不影响网站其余功能
+    if(window.PetContext) window.PetContext.set('home'); // 页面加载默认在主页，同步上下文
     const oml = OML2D.loadOml2d({
       dockedPosition: 'right', // 默认是 left（会跑到左下角），这里改成右下角
       // 底部菜单：过滤掉"关于"按钮（默认会 window.open("https://oml2d.com") 跳外站），保留休息/切换衣服/切换模型

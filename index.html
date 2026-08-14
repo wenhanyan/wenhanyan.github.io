@@ -1469,6 +1469,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(target) target.classList.add('active');
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
     window.scrollTo({top:0, behavior:'smooth'});
+    if(window.PetContext) window.PetContext.set(view); // 同步当前浏览区域给小D
   }
 
   /* ============ 主题切换 ============ */
@@ -1814,18 +1815,19 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   })();
 })();
 </script>
-<script src="js/pet-config.js?v=3"></script>
+<script src="js/pet-config.js?v=5"></script>
 <script src="js/pet-state.js?v=3"></script>
 <script src="js/pet-emotion.js?v=3"></script>
-<script src="js/pet-memory.js?v=3"></script>
+<script src="js/pet-memory.js?v=5"></script>
+<script src="js/pet-context.js?v=5"></script>
 <script src="js/pet-user.js?v=3"></script>
 <script src="js/pet-profile.js?v=3"></script>
-<script src="js/pet-personality.js?v=3"></script>
+<script src="js/pet-personality.js?v=5"></script>
 <script src="js/pet-dialogue.js?v=3"></script>
 <script src="js/pet-follow.js?v=3"></script>
-<script src="js/pet-drag.js?v=3"></script>
-<script src="js/pet-behavior.js?v=3"></script>
+<script src="js/pet-drag.js?v=5"></script>
+<script src="js/pet-behavior.js?v=5"></script>
 <script src="js/pet-menu.js?v=3"></script>
-<script src="js/live2d.js?v=4"></script>
+<script src="js/live2d.js?v=5"></script>
 </body>
 </html>

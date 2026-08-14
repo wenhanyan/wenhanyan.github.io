@@ -3,8 +3,13 @@ window.PetPersonality = (function(){
   if(!window.PetProfile){
     console.error('[PetPersonality] 依赖未加载：PetProfile');
   }
+  if(!window.PetUser){
+    console.error('[PetPersonality] 依赖未加载：PetUser');
+  }
 
   const name = window.PetProfile.name;              // 桌宠名字（唯一来源，禁止硬编码）
+  // 主人称谓：用户设置了昵称就用昵称，否则保持"主人"这一人格默认称呼（避免硬编码用户名）
+  const master = (window.PetUser && window.PetUser.getName()) || '主人';
 
   const traits = ['curious', 'calm', 'creative'];   // 好奇、冷静、有创造力
   const tone = '简短、温和、聪明，不过度卖萌';
@@ -15,20 +20,28 @@ window.PetPersonality = (function(){
   };
 
   // 台词库：按意图分组
-  // - welcome 按"离开时长/熟悉度"分层（first/back/longBack）
-  // - click / idle 按情绪（PetEmotionType 值）细分
-  // - sleep / restReminder 为平铺数组
+  // - welcome 按关系等级分层（stranger/familiar/friend）+ 长时间离开 longBack
+  // - click 按"第一次/老朋友"分层，其余按情绪（PetEmotionType 值）细分
+  // - context 按浏览区域分层（project/ai）
+  // - idle 按情绪细分；sleep / restReminder 为平铺数组
   const lines = {
     welcome: {
-      first:    ['你好呀，我是 ' + name + '。', '欢迎来到我的小窝，我是 ' + name + '。'],
-      back:     ['主人又来看我啦。', '回来啦。', '欢迎回来，主人。'],
-      longBack: ['好久不见主人，想我了吗？', '你终于回来啦，好久不见。']
+      stranger: ['你好呀，我是 ' + name + '。', '欢迎来到我的小窝，我是 ' + name + '。'],
+      familiar: [master + '又来看我啦。', '回来啦，' + master + '。', '欢迎回来，' + master + '。'],
+      friend:   [master + '回来啦，我已经习惯陪你了。', '欢迎回来，' + master + '，今天也在呀。'],
+      longBack: ['好久不见' + master + '，想我了吗？', '你终于回来啦，好久不见。']
     },
     click: {
+      first:    ['找到我啦。', '你发现我啦。'],
+      friend:   [master + '今天也来陪我玩啦。', '嗯，我在呢。'],
       CALM:    ['嗯？', '怎么了？'],
       HAPPY:   ['嗯？找到我啦。', '哈，被你发现了。'],
       CURIOUS: ['是在研究我的功能吗？', '对我很好奇？'],
       SLEEPY:  ['让我休息一下嘛……', '嗯……']
+    },
+    context: {
+      project: [name + '发现' + master + '正在看作品呢。', master + '的作品都很有意思。'],
+      ai:      ['这里是 AI 相关区域。', '在看 AI 助手呀。']
     },
     idle: {
       CALM:    ['……', '（发呆中）'],

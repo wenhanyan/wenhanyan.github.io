@@ -23,7 +23,9 @@ window.PetConfig = Object.freeze({
     restAfterMs: 360000,         // 无互动 6 分钟 → 进入休息
     restReminderDelayMs: 4000,   // 休息行为后多久提醒主人起身（错开上一条气泡）
     shortBackMs: 1800000,        // 离开 ≤ 30 分钟 = 短时间回来
-    longBackMs: 86400000         // 离开 ≥ 24 小时 = 长时间回来
+    longBackMs: 86400000,        // 离开 ≥ 24 小时 = 长时间回来
+    contextDelayMs: 4000,        // 进入区域后停留这么久才说话（避免立即打扰）
+    contextCooldownMs: 120000    // 同一区域至少间隔 2 分钟才再说话
   },
   emotion: {                     // 情绪参数
     default: PetEmotionType.CALM

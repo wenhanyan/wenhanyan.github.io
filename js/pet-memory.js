@@ -47,6 +47,11 @@ window.PetMemory = (function(){
     isFirstVisit(){ return data.visitCount === 1; },
     getLastGap(){ return data.lastGap; },          // 距上次访问时长（毫秒），用于回来欢迎语分层
     getVisitCount(){ return data.visitCount; },    // 累计访问次数（熟悉度）
+    getRelationshipLevel(){                        // 关系等级：基于累计访问次数
+      if(data.visitCount >= 10) return 'friend';
+      if(data.visitCount >= 3) return 'familiar';
+      return 'stranger';
+    },
     get(){ return data; }
   };
 })();

@@ -17,6 +17,12 @@ window.PetBehavior = (function(){
   if(!window.PetMemory){
     console.error('[PetBehavior] 依赖未加载：PetMemory');
   }
+  if(!window.PetPersonality){
+    console.error('[PetBehavior] 依赖未加载：PetPersonality');
+  }
+  if(!window.PetContext){
+    console.error('[PetBehavior] 依赖未加载：PetContext');
+  }
 
   const CFG = window.PetConfig.behavior;   // 时间参数集中于此，禁止硬编码
   const EMOTION = window.PetEmotionType;
@@ -28,6 +34,9 @@ window.PetBehavior = (function(){
   let slept = false;       // 本次空闲段是否已触发困倦（互动后重置）
   let rested = false;      // 本次空闲段是否已触发休息（互动后重置）
   let context = null;      // 未来：用户浏览区域（home/project/about/ai），setContext 预留
+  let contextTimer = null; // 环境感知：进入区域后延时说话
+  let lastContextAt = 0;   // 上次环境话时间戳（冷却用）
+  let contextOff = null;   // PetContext.onChange 解绑函数
 
   function idleMs(){
     return Date.now() - window.PetState.getLastActivity();
@@ -68,18 +77,31 @@ window.PetBehavior = (function(){
     }
   }
 
-  // 页面进入：按记忆决定欢迎语（第一次 / 短时间回来 / 长时间回来）
+  // 页面进入：按关系等级决定欢迎语（stranger/familiar/friend）+ 长时间离开 longBack
   function welcomeBack(){
-    if(window.PetMemory.isFirstVisit()){
-      window.PetDialogue.say('welcome', 'first');
-      return;
-    }
+    const level = window.PetMemory.getRelationshipLevel();   // stranger / familiar / friend
     const gap = window.PetMemory.getLastGap();
-    if(gap != null && gap >= CFG.longBackMs){
-      window.PetDialogue.say('welcome', 'longBack');
+    if(level !== 'stranger' && gap != null && gap >= CFG.longBackMs){
+      window.PetDialogue.say('welcome', 'longBack');        // 老朋友久别重逢
     } else {
-      window.PetDialogue.say('welcome', 'back');
+      window.PetDialogue.say('welcome', level);             // 按关系等级欢迎
     }
+  }
+
+  // 环境感知：进入有台词的区域（project/ai）后，停留片刻再说话；有冷却，不打扰
+  function onSectionChange(section){
+    if(contextTimer){ clearTimeout(contextTimer); contextTimer = null; }
+    if(!section) return;                                            // 离开已知区域：取消
+    const group = window.PetPersonality.lines.context;              // { project:[...], ai:[...] }
+    if(!group || !group[section]) return;                           // 该区域无台词：不打扰
+    if((Date.now() - lastContextAt) < CFG.contextCooldownMs) return; // 冷却中
+    contextTimer = setTimeout(function(){
+      if(window.PetContext.get().section === section){              // 确认仍在原区域才说
+        window.PetDialogue.say('context', section);
+        lastContextAt = Date.now();
+      }
+      contextTimer = null;
+    }, CFG.contextDelayMs);
   }
 
   // 页面隐藏/恢复：隐藏时暂停心跳（省资源），恢复时欢迎回来
@@ -113,6 +135,7 @@ window.PetBehavior = (function(){
     welcomeBack();                                 // 页面加载：欢迎
     heartbeat = setInterval(tick, CFG.heartbeatMs);
     document.addEventListener('visibilitychange', onVisibility);
+    contextOff = window.PetContext.onChange(onSectionChange);  // 环境感知订阅
   }
 
   function destroy(){
@@ -120,6 +143,8 @@ window.PetBehavior = (function(){
     initialized = false;
     if(heartbeat){ clearInterval(heartbeat); heartbeat = null; }
     if(restTimer){ clearTimeout(restTimer); restTimer = null; }
+    if(contextTimer){ clearTimeout(contextTimer); contextTimer = null; }
+    if(contextOff){ contextOff(); contextOff = null; }
     document.removeEventListener('visibilitychange', onVisibility);
     slept = false;
     rested = false;
