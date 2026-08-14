@@ -1813,9 +1813,70 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
   })();
 
   /* ============ Live2D 桌宠（oh-my-live2d，CDN 非阻塞加载） ============ */
+
+  /* 互动台词配置（独立配置，不硬编码在主逻辑里） */
+  const petDialogue = {
+    lines: [                     // 点击时随机取一条
+      '你好呀，我是 Delta 的桌宠～',
+      '今天也要元气满满哦！',
+      '要不要去看看阅读书单呀？',
+      '我在右下角，按住可以拖动我～',
+      '有什么想聊的吗？',
+      '加油加油，你最棒！'
+    ],
+    motion: 'tap',               // 预留扩展字段：未来库支持按名播放动作时使用；当前点击走模型自带 tap 动作
+    duration: 3000               // 气泡显示时长（毫秒）
+  };
+
+  /* 状态机：IDLE / TALKING / INTERACTION / DRAGGING */
+  let pet = null;                // loadOml2d 返回的实例
+  let petState = 'IDLE';
+  let petTalkTimer = null;
+  function setPetState(s){ petState = s; }
+
+  /* 点击互动：随机台词 → 气泡（TALKING），时长结束自动消失并回到 IDLE；tap 动作由库自动播放 */
+  function petSayRandom(){
+    if(!pet) return;
+    const line = petDialogue.lines[Math.floor(Math.random() * petDialogue.lines.length)];
+    setPetState('INTERACTION');
+    pet.tipsMessage(line, petDialogue.duration);
+    setPetState('TALKING');
+    if(petTalkTimer) clearTimeout(petTalkTimer);
+    petTalkTimer = setTimeout(function(){
+      pet.clearTips();
+      setPetState('IDLE');
+      petTalkTimer = null;
+    }, petDialogue.duration);
+  }
+
+  /* 鼠标跟随：轻微旋转模型模拟"关注"，rAF 平滑插值，鼠标离开窗口后归零（不影响 idle） */
+  let petFollowTarget = 0;       // 目标角度（度）
+  let petFollowCurrent = 0;      // 当前角度（度）
+  let petFollowRaf = null;
+  const PET_FOLLOW_MAX = 4;      // 最大倾斜角度（度），避免旋转过大显得违和
+  function updatePetFollow(){
+    petFollowCurrent += (petFollowTarget - petFollowCurrent) * 0.03;
+    if(Math.abs(petFollowTarget - petFollowCurrent) < 0.01){
+      petFollowCurrent = petFollowTarget;
+      petFollowRaf = null;
+    }
+    if(pet) pet.setModelRotation(petFollowCurrent);
+    if(petFollowRaf) petFollowRaf = requestAnimationFrame(updatePetFollow);
+  }
+  function onMouseMove(e){
+    if(petState === 'DRAGGING') return;               // 拖动时不跟随
+    const cx = window.innerWidth / 2;
+    petFollowTarget = ((e.clientX - cx) / cx) * PET_FOLLOW_MAX;
+    if(!petFollowRaf) petFollowRaf = requestAnimationFrame(updatePetFollow);
+  }
+  function onMouseLeave(){
+    petFollowTarget = 0;                              // 鼠标离开 → 恢复正面
+    if(!petFollowRaf) petFollowRaf = requestAnimationFrame(updatePetFollow);
+  }
+
   function bootLive2d(){
     if(!window.OML2D) return; // CDN 加载失败时静默跳过，不影响网站其余功能
-    OML2D.loadOml2d({
+    pet = OML2D.loadOml2d({
       dockedPosition: 'right', // 默认是 left（会跑到左下角），这里改成右下角
       models: [
         {
@@ -1826,9 +1887,12 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
         }
       ]
     });
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseleave', onMouseLeave);
   }
 
-  /* oh-my-live2d 本身不支持自由拖动，这里手动实现：按住模型画布拖动整个桌宠 */
+  /* oh-my-live2d 本身不支持自由拖动，这里手动实现：按住模型画布拖动整个桌宠。
+     拖动与点击共用一个 pointer 事件，用 4px 阈值区分：超阈值=拖动，未超=点击互动。 */
   let l2dDrag = null;
   function initLive2dDrag(){
     document.addEventListener('pointerdown', function(e){
@@ -1845,15 +1909,23 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
       const dy = e.clientY - l2dDrag.sy;
       if(!l2dDrag.moved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
       l2dDrag.moved = true;
+      setPetState('DRAGGING');                          // 超过阈值 = 拖动
       const s = l2dDrag.stage;
       s.style.left = (l2dDrag.l + dx) + 'px';
       s.style.top = (l2dDrag.t + dy) + 'px';
       s.style.right = 'auto';
       s.style.bottom = 'auto';
     });
-    function endDrag(){ l2dDrag = null; }
+    function endDrag(){
+      if(l2dDrag && !l2dDrag.moved) petSayRandom();     // 未超过阈值 = 点击互动
+      l2dDrag = null;
+      if(petState === 'DRAGGING') setPetState('IDLE');  // 拖动结束 → 恢复待机
+    }
     document.addEventListener('pointerup', endDrag);
-    document.addEventListener('pointercancel', endDrag);
+    document.addEventListener('pointercancel', function(){ // 触摸被中断（如滚动）时只清理，不触发点击
+      l2dDrag = null;
+      if(petState === 'DRAGGING') setPetState('IDLE');
+    });
   }
   initLive2dDrag();
 
