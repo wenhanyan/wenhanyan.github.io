@@ -668,6 +668,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
 <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/oh-my-live2d@0.19.3" defer></script>
 <script>
 (function(){
   "use strict";
@@ -1810,6 +1811,26 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     initParallax();
     pushMsg('你好呀！我是 '+(data.name||'Delta')+' 的 AI 助手 🤖 有什么想了解的吗？', 'ai');
   })();
+
+  /* ============ Live2D 桌宠（oh-my-live2d，CDN 非阻塞加载） ============ */
+  function bootLive2d(){
+    if(!window.OML2D) return; // CDN 加载失败时静默跳过，不影响网站其余功能
+    OML2D.loadOml2d({
+      models: [
+        {
+          path: 'https://model.hacxy.cn/HK416-1-normal/model.json',
+          position: [0, 60],
+          scale: 0.08,
+          stageStyle: { height: 450, zIndex: 150 }
+        }
+      ]
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bootLive2d);
+  } else {
+    bootLive2d();
+  }
 })();
 </script>
 </body>
