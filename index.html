@@ -467,6 +467,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     <button class="nav-btn" data-view="games"><span class="idx">05</span>游戏</button>
     <button class="nav-btn" data-view="resume"><span class="idx">06</span>简历</button>
     <button class="nav-btn" data-view="ai"><span class="idx">07</span>AI助手</button>
+    <button class="nav-btn" data-view="message"><span class="idx">08</span>留言</button>
   </nav>
   <div class="nav-right">
     <button class="edit-pill" id="authBtn" title="登录后可同步内容到云端（全网可见）">🔒 登录</button>
@@ -610,6 +611,21 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
           <button class="btn btn-blue" id="chatSend" style="padding:11px 22px">发送</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="view-message" class="view">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="eyebrow">Guestbook</div>
+        <h2 class="sec-title">留言 <em>Message</em></h2>
+      </div>
+      <div class="chat-input" style="margin-top:8px">
+        <input id="msgNick" type="text" placeholder="昵称（可留空）" autocomplete="off" style="flex:0 0 130px">
+        <input id="msgContent" type="text" placeholder="写下你的留言…" autocomplete="off">
+        <button class="btn btn-blue" id="msgSend" style="padding:11px 22px">留言</button>
+      </div>
+      <div class="list" id="msgList" style="margin-top:20px"></div>
     </div>
   </section>
 </main>
@@ -897,6 +913,52 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(editing){ setEdit(false); } // 退出登录后强制退出编辑态
     await updateAuthUI();
     toast('已退出登录');
+  }
+
+  /* ============ 访客留言（免登录，匿名读写 guestbook 表） ============ */
+  async function loadMessages(){
+    const list = document.getElementById('msgList');
+    if(!list) return;
+    if(!sb){ list.innerHTML = '<div class="item"><div class="sub">留言加载失败（Supabase 未加载）</div></div>'; return; }
+    const { data, error } = await sb.from('guestbook').select('*').order('created_at', { ascending: false }).limit(100);
+    if(error){ list.innerHTML = '<div class="item"><div class="sub">留言加载失败，请稍后再试</div></div>'; return; }
+    if(!data || !data.length){ list.innerHTML = '<div class="item"><div class="sub">还没有留言，来抢沙发～</div></div>'; return; }
+    list.innerHTML = data.map(function(m){
+      const nick = esc(m.nickname || '匿名');
+      const t = m.created_at ? ' <span style="font-size:11px;color:var(--ink-soft)">· ' + new Date(m.created_at).toLocaleString('zh-CN') + '</span>' : '';
+      return '<div class="item"><div class="body"><div class="t">' + nick + t + '</div><div class="sub">' + esc(m.content) + '</div></div><button class="rm-btn" data-msg-del="' + m.id + '" title="删除留言">×</button></div>';
+    }).join('');
+  }
+  async function submitMessage(){
+    if(!sb){ toast('留言服务未加载，请稍后再试'); return; }
+    const nick = (document.getElementById('msgNick').value || '').trim();
+    const content = (document.getElementById('msgContent').value || '').trim();
+    if(!content){ toast('写点什么再发送吧'); return; }
+    const { error } = await sb.from('guestbook').insert({ nickname: nick || '匿名', content: content });
+    if(error){ toast('留言失败：' + guestErr(error)); return; }
+    document.getElementById('msgContent').value = '';
+    loadMessages();
+    toast('留言成功 ✓');
+  }
+  function guestErr(e){
+    const m = e && (e.message || e.details || e.hint || String(e)) || '';
+    if(/PGRST205|Could not find the table|schema cache/i.test(m)) return 'Supabase 里还没有 guestbook 表，请先在 SQL Editor 建表';
+    if(/row-level security|permission denied|violates/i.test(m)) return '被 RLS 拦截：请给 anon 和 authenticated 补上 insert/select/delete 策略';
+    return m;
+  }
+  async function deleteMessage(id, btn){
+    if(!confirm('确定删除这条留言吗？')) return;
+    if(!sb){ toast('留言服务未加载'); return; }
+    const item = btn ? btn.closest('.item') : null;
+    if(item){ item.style.transition = 'opacity .25s, transform .25s'; item.style.opacity = '0'; item.style.transform = 'translateX(10px)'; }
+    const { error } = await sb.from('guestbook').delete().eq('id', id);
+    if(error){
+      if(item){ item.style.opacity = ''; item.style.transform = ''; }
+      toast('删除失败：' + guestErr(error));
+      return;
+    }
+    setTimeout(loadMessages, 260);
+    toast('已删除留言');
   }
 
   /* ============ 音效（Web Audio，轻微点击） ============ */
@@ -1471,6 +1533,7 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
     window.scrollTo({top:0, behavior:'smooth'});
     if(window.PetContext) window.PetContext.set(view); // 同步当前浏览区域给小D
+    if(view === 'message') loadMessages();
   }
 
   /* ============ 主题切换 ============ */
@@ -1737,6 +1800,9 @@ footer{border-top:1px solid var(--line);padding:34px clamp(18px,5vw,56px);displa
     if(e.target.closest('#closePageBtn')){ closePage(); return; }
     // AI 助手
     if(e.target.closest('#chatSend')){ sendChat(); return; }
+    if(e.target.closest('#msgSend')){ submitMessage(); return; }
+    const msgDel = e.target.closest('[data-msg-del]');
+    if(msgDel){ playClick(); deleteMessage(+msgDel.dataset.msgDel, msgDel); return; }
     const ask = e.target.closest('[data-ask]');
     if(ask){ const ci = document.getElementById('chatInput'); if(ci) ci.value = ask.dataset.ask; sendChat(); return; }
     // 登录弹窗相关
